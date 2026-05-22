@@ -29,26 +29,23 @@ vim.opt.shiftwidth = 8
 vim.opt.softtabstop = 8
 vim.opt.smarttab = true
 vim.opt.completeopt = "menu,menuone,noselect"
+
 vim.g.mapleader = " "
-
 local key = vim.keymap.set
+key("i", "jk", "<Esc>")
+key("i", "<C-c>", "<Esc>")
+key("n", "<leader>", "za")
+key("v", "<C-a>", ":w !xclip -i -sel c<CR><CR>")
 
--- FIXED KEYMAPS: Added standard key combinations instead of empty quotes
-key("i", "jk", "<Esc>", { desc = "Exit insert mode with jk" })
-key("n", "<Space>", "za", { desc = "Toggle code folding with Spacebar" })
-key("v", "<C-c>", ":w !xclip -i -sel c<CR>", { desc = "Copy selection to system clipboard" })
-
--- CodeCompanion Keymaps
-key({ "n", "v" }, "<leader>ca", "<cmd>CodeCompanionActions<CR>", { desc = "AI Actions Menu" })
-key({ "n", "v" }, "<leader>cc", "<cmd>CodeCompanionChat Toggle<CR>", { desc = "Toggle AI Chat" })
-key("v", "<leader>cb", "<cmd>CodeCompanionChat Add<CR>", { desc = "Add selection to AI Chat" })
-key("n", "<leader>cy", ":%y+<CR>", { desc = "Copy AI chat buffer to system clipboard" })
+key({ "n", "v" }, "<leader>a", "<cmd>CodeCompanionActions<cr>", { desc = "AI Actions Menu" })
+key({ "n", "v" }, "<leader>c", "<cmd>CodeCompanionChat Toggle<cr>", { desc = "Toggle AI Chat" })
+key("v", "ga", "<cmd>CodeCompanionChat Add<cr>", { desc = "Add selection to AI Chat" })
 vim.cmd([[cabbrev cc CodeCompanion]])
 
--- Project Compiling & Execution Shortcuts (Fixed LHS)
-key("n", "<F5>", ":!qmake && make && make clean && rm -f Makefile<CR>", { desc = "Build project with qmake" })
-key("n", "<F6>", ":!./Calculo<CR>", { desc = "Run Calculo executable" })
-key("n", "<leader>n", ":NERDTreeToggle<CR>:set relativenumber<CR>", { desc = "Toggle NERDTree" })
+key("n", "<C-A-b>", ":!qmake && make && make clean && rm -f Makefile<CR>")
+key("n", "<C-A-r>", ":!./Calculo<CR>")
+key("n", "<C-t>", ":NERDTreeToggle<CR>:set relativenumber<CR>")
+vim.g.NERDTreeIgnore = { '\\.o$' }
 
 -- Custom Tabs for Rust
 local rust_tabs = vim.api.nvim_create_augroup("RustTabs", { clear = true })
@@ -63,34 +60,41 @@ vim.api.nvim_create_autocmd("FileType", {
     end,
 })
 
+-- Toggle a slim terminal at the bottom (VS Code style)
+key("n", "<C-j>", function()
+  local term_win = nil
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    local buf = vim.api.nvim_win_get_buf(win)
+    if vim.bo[buf].buftype == "terminal" then
+      term_win = win
+      break
+    end
+  end
+
+  if term_win then
+    vim.api.nvim_win_close(term_win, true)
+  else
+    vim.cmd("botright 8split | term")
+    vim.cmd("startinsert")
+  end
+end, { desc = "Toggle VS Code style terminal" })
+
+key("t", "jk", [[<C-\><C-n>]], { desc = "Exit terminal insert mode" })
+
+vim.api.nvim_create_autocmd("TermClose", {
+  callback = function()
+    vim.cmd("bdelete")
+  end,
+})
+
 -- ========================================================================== --
 -- ==                          PLUGIN MANAGEMENT                           == --
 -- ========================================================================== --
 require("lazy").setup({
-  { "neovim/nvim-lspconfig" }, -- Required for the underlying configs
-
-  -- Force Mason to strictly use pnpm as its package manager provider
-  {
-    "williamboman/mason.nvim",
-    opts = {
-      providers = {
-        "mason.providers.client.pnpm",
-      },
-    },
-  },
-
-  {
-    "williamboman/mason-lspconfig.nvim",
-    opts = {
-      ensure_installed = { "clangd", "rust_analyzer", "jdtls" }
-    }
-  },
-
-  { 'saghen/blink.cmp', version = '*', 
-	  opts = { 
-		  keymap = { preset = 'super-tab' } 
-	  } 
-  },
+  { "neovim/nvim-lspconfig" },
+  { "williamboman/mason.nvim", opts = {} },
+  { "williamboman/mason-lspconfig.nvim", opts = { ensure_installed = { "clangd", "rust_analyzer", "jdtls" } } },
+  { "saghen/blink.cmp", version = "*", opts = { keymap = { preset = "super-tab" } } },
   { "preservim/nerdtree" },
   { "jiangmiao/auto-pairs" },
   { "rust-lang/rust.vim" },
@@ -102,23 +106,9 @@ require("lazy").setup({
       "nvim-lua/plenary.nvim",
       "nvim-treesitter/nvim-treesitter",
     },
-    config = function()
-      require("codecompanion").setup({
-	strategies = {
-	  chat = { adapter = "gemini" },
-	  inline = { adapter = "gemini" },
-	  agent = { adapter = "gemini" },
-	},
-        display = {
-          chat = {
-            window = {
-              layout = "vertical",
-              width = 0.35,  -- 35% of screen width; adjust to taste
-              height = 0.8,
-            },
-          },
-        },
-        adapters = {
+    opts = {
+      adapters = {
+        http = {
           gemini = function()
             return require("codecompanion.adapters").extend("gemini", {
               env = {
@@ -127,13 +117,30 @@ require("lazy").setup({
               schema = {
                 model = {
                   default = "gemini-2.5-flash",
+                  choices = {
+                    ["gemini-2.5-flash"] = { opts = { can_reason = false, has_vision = true } },
+                  },
                 },
               },
             })
           end,
         },
-      })
-    end,
+      },
+      strategies = {
+        chat   = { adapter = "gemini" },
+        inline = { adapter = "gemini" },
+        agent  = { adapter = "gemini" },
+      },
+      display = {
+        chat = {
+          window = {
+            layout = "vertical",
+            width = 0.25,
+            height = 0.8,
+          },
+        },
+      },
+    },
   },
 })
 
@@ -141,34 +148,28 @@ require("lazy").setup({
 -- ==                              LSP CONFIG                              == --
 -- ========================================================================== --
 if vim.lsp.config then
-    -- Modern 0.11+ way
-    vim.lsp.enable('clangd')
-    vim.lsp.enable('rust_analyzer')
-    vim.lsp.enable('ts_ls')
-    vim.lsp.enable('jdtls')
+    vim.lsp.enable("clangd")
+    vim.lsp.enable("rust_analyzer")
+    vim.lsp.enable("jdtls")
 else
-    -- Fallback for 0.10 stable
-    local lspconfig = require('lspconfig')
+    local lspconfig = require("lspconfig")
     lspconfig.clangd.setup({})
     lspconfig.rust_analyzer.setup({})
-    lspconfig.ts_ls.setup({})
     lspconfig.jdtls.setup({})
 end
 
--- Keybindings that only activate when an LSP is connected
-vim.api.nvim_create_autocmd('LspAttach', {
+vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(args)
     local opts = { buffer = args.buf }
-
-    vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
-    vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
-    vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, opts)
-    vim.keymap.set('n', 'ge', vim.diagnostic.open_float)
+    vim.keymap.set("n", "<C-k>", vim.lsp.buf.hover, opts)
+    vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+    vim.keymap.set("n", "<C-s>", vim.lsp.buf.signature_help, opts)
+    vim.keymap.set("n", "ge", vim.diagnostic.open_float)
   end,
 })
 
 -- Yank contents of nearest markdown code block (no fences)
-key("n", "<leader>cy", function()
+key("n", "<leader>y", function()
   local start_line = nil
   local cur = vim.fn.line(".")
   for i = cur, 1, -1 do
