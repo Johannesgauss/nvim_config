@@ -39,8 +39,43 @@ key("v", "<C-a>", ":w !xclip -i -sel c<CR><CR>")
 
 key({ "n", "v" }, "<leader>a", "<cmd>CodeCompanionActions<cr>", { desc = "AI Actions Menu" })
 key({ "n", "v" }, "<leader>c", "<cmd>CodeCompanionChat Toggle<cr>", { desc = "Toggle AI Chat" })
-key("v", "ga", "<cmd>CodeCompanionChat Add<cr>", { desc = "Add selection to AI Chat" })
 vim.cmd([[cabbrev cc CodeCompanion]])
+
+-- ANONYMOUS "ga": Sends code with language extension, hides file paths entirely
+key("v", "ga", function()
+  -- 1. Grab the current file extension (returns empty string if unnamed/no extension)
+  local ext = vim.fn.expand("%:e")
+  
+  -- 2. Grab the visually selected text line-by-line
+  vim.cmd('normal! "zy')
+  local raw_text = vim.fn.getreg("z")
+  local lines = vim.split(raw_text, "\n", { plain = true })
+  
+  -- 3. Wrap inside markdown code fences using the extracted extension
+  table.insert(lines, 1, "```" .. ext)
+  table.insert(lines, "```")
+
+  -- 4. Get the active chat buffer if open, or toggle it open
+  local chat = require("codecompanion").last_chat()
+  if not chat then
+    vim.cmd("CodeCompanionChat Toggle")
+    chat = require("codecompanion").last_chat()
+  end
+
+  -- 5. Inject the code lines into the bottom of the AI chat window
+  if chat and chat.bufnr then
+    local last_line = vim.api.nvim_buf_line_count(chat.bufnr)
+    -- Append a newline gap, then our code lines
+    vim.api.nvim_buf_set_lines(chat.bufnr, last_line, last_line, false, vim.list_extend({ "" }, lines))
+    print("Code block (" .. (ext ~= "" and ext or "plain text") .. ") added anonymously.")
+  else
+    print("Error: Could not find active AI chat buffer.")
+  end
+
+  -- 6. Clear register
+  vim.fn.setreg("z", "")
+end, { desc = "Add code selection with extension to AI Chat" })
+
 
 key("n", "<C-A-b>", ":!qmake && make && make clean && rm -f Makefile<CR>")
 key("n", "<C-A-r>", ":!./Calculo<CR>")
@@ -200,3 +235,4 @@ end, { desc = "Yank nearest code block to clipboard" })
 -- ==                              APPEARANCE                              == --
 -- ========================================================================== --
 vim.cmd.colorscheme "catppuccin"
+
