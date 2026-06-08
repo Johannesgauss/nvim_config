@@ -1,0 +1,7 @@
+WRN 2026-06-05T12:24:49.733 ui.8       tui_handle_term_mode:226: TUI: terminal mode 69 unavailable, state 0
+WRN 2026-06-05T12:24:49.733 ui.8       tui_handle_term_mode:239: TUI: terminal mode 2026 detected, state 2
+WRN 2026-06-05T12:24:49.733 ui.8       tui_handle_term_mode:226: TUI: terminal mode 2027 unavailable, state 0
+WRN 2026-06-05T12:24:49.733 ui.8       tui_handle_term_mode:239: TUI: terminal mode 2031 detected, state 2
+WRN 2026-06-05T12:24:49.733 ui.8       tui_handle_term_mode:239: TUI: terminal mode 2048 detected, state 2
+WRN 2026-06-05T12:24:49.735 ?.9        socket_watcher_start:177: Failed to remove stale socket /run/user/1000/nvim.9.0: permission denied
+WRN 2026-06-05T12:24:49.735 ?.9        server_start:197: Failed to start server: permission denied: /run/user/1000/
