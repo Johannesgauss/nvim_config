@@ -18,3 +18,5 @@ WRN 2026-06-05T12:39:03.388 ui.7       tui_handle_term_mode:239: TUI: terminal m
 WRN 2026-06-05T12:39:03.388 ui.7       tui_handle_term_mode:226: TUI: terminal mode 2027 unavailable, state 0
 WRN 2026-06-05T12:39:03.388 ui.7       tui_handle_term_mode:239: TUI: terminal mode 2031 detected, state 2
 WRN 2026-06-05T12:39:03.388 ui.7       tui_handle_term_mode:239: TUI: terminal mode 2048 detected, state 2
+WRN 2026-06-13T11:48:39.159 c/nvim.195821.0 socket_watcher_start:177: Failed to remove stale socket /run/user/1000/nvim.18.0: no such file or directory
+WRN 2026-06-13T11:48:39.159 c/nvim.195821.0 server_start:197: Failed to start server: no such file or directory: /run/user/1000/
