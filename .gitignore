@@ -1,0 +1,25 @@
+# Neovim swap, undo, and backup files
+*.swp
+*.swo
+*~
+*.bak
+
+# Neovim state, cache, logs, and sessions
+.local/
+*.log
+nvim.log
+shada/
+*.shada
+
+# OS and shell files
+.DS_Store
+.Xauthority
+.zshrc
+.inputrc
+.config/
+
+# Local uncommitted files
+lua/core/plugins-nerdtree.lua
+
+# JSON data / lockfiles
+*.json
