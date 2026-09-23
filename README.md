@@ -24,3 +24,15 @@ A modular Neovim setup using [lazy.nvim](https://github.com/folke/lazy.nvim) for
 - **Git Integration**: [diffview.nvim](https://github.com/sindrets/diffview.nvim) & Lazygit integration
 - **Theme**: [Catppuccin Mocha](https://github.com/catppuccin/nvim)
 - **AI Integrations**: Antigravity, Claude Code, GitHub Copilot, and Ollama support
+
+## Documentation
+
+Full documentation is available in the [`docs/`](docs/README.md) directory:
+
+- [Architecture & Lifecycle](docs/architecture.md)
+- [Core Configuration & Options](docs/core-configuration.md)
+- [UI, Statusline & :ToggleVimLook](docs/ui-and-appearance.md)
+- [Plugins (Tree, Diffview, Autopairs, Treesitter)](docs/plugins.md)
+- [LSP & Autocompletion](docs/lsp-and-completion.md)
+- [AI Integrations (Antigravity, Claude, Copilot, Ollama)](docs/ai-integrations.md)
+- [Keymaps Cheat Sheet](docs/keymaps-reference.md)
