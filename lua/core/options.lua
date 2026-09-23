@@ -11,7 +11,7 @@ opt.clipboard = "unnamedplus"
 opt.smartindent = true
 opt.tabstop = 8
 opt.shiftwidth = 8
-opt.expandtab = true
+opt.expandtab = false
 
 vim.api.nvim_create_autocmd({"WinEnter", "BufWinEnter", "TermOpen"}, {
     pattern = "term://*",
