@@ -50,8 +50,8 @@ M.specs = {
           agy_buf = vim.api.nvim_get_current_buf()
           vim.opt_local.winfixwidth = true
           vim.keymap.set("n", "<leader>as", function() resize_agy_panel(0.25) end, { buffer = agy_buf, desc = "Antigravity: Resize to 25%" })
-          vim.keymap.set("n", "<leader>am", function() resize_agy_panel(0.38) end, { buffer = agy_buf, desc = "Antigravity: Resize to 65%" })
-          vim.keymap.set("n", "<leader>at", function() resize_agy_panel(0.65) end, { buffer = agy_buf, desc = "Antigravity: Resize to 100%" })
+          vim.keymap.set("n", "<leader>am", function() resize_agy_panel(0.42) end, { buffer = agy_buf, desc = "Antigravity: Resize to 65%" })
+          vim.keymap.set("n", "<leader>al", function() resize_agy_panel(0.65) end, { buffer = agy_buf, desc = "Antigravity: Resize to 100%" })
           vim.cmd("startinsert")
         end
       end, { desc = "Toggle Antigravity CLI Panel" })
