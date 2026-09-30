@@ -15,6 +15,8 @@ This document explains the Language Server Protocol (LSP) setup, Mason package m
 - **Bridge (`mason-lspconfig.nvim`)**: Automatically ensures the following language servers are installed:
   - `ts_ls` (TypeScript & JavaScript)
   - `clangd` (C and C++)
+  - `lua_ls` (Lua & Neovim API runtime)
+  - `pyright` (Python)
 
 ---
 
@@ -27,6 +29,7 @@ The native Neovim LSP client is configured via [nvim-lspconfig](https://github.c
 | **`ts_ls`** | TypeScript, JavaScript, JSX, TSX | Standard capabilities bridged to `cmp-nvim-lsp`. |
 | **`clangd`** | C, C++ | Standard compilation database and header indexing. |
 | **`pyright`** | Python | Configured with `autoSearchPaths = true`, `useLibraryCodeForTypes = true`, and `diagnosticMode = "workspace"`. |
+| **`lua_ls`** | Lua, Neovim Configs | Configured with `LuaJIT` runtime, `vim` globals, and Neovim runtime library awareness. |
 
 ---
 
@@ -41,13 +44,21 @@ When a language server attaches to an active buffer, a dedicated `LspAttach` aut
 | `gi` | Implementation | List all implementations of an interface/method (`vim.lsp.buf.implementation`). |
 | `gr` | References | Find all symbol references throughout the project (`vim.lsp.buf.references`). |
 | `K` | Hover Documentation | Show hover doc popup / type signature (`vim.lsp.buf.hover`). |
-| `<C-k>` | Signature Help | Show active function signature help while typing arguments (`vim.lsp.buf.signature_help`). |
+| `<C-k>` | Hover Documentation | Show hover doc popup / function documentation (`vim.lsp.buf.hover`). |
+| `<C-s>` | Signature Help | Show function arguments reminder popup in Normal and Insert mode (`vim.lsp.buf.signature_help`). |
+| `<leader>k` | Signature Help | Show function arguments reminder popup in Normal mode (`vim.lsp.buf.signature_help`). |
+| `<leader>th` | Toggle Inlay Hints | Toggle inline argument name / type hints on and off (`vim.lsp.inlay_hint`). |
 | `<leader>rn` | Rename Symbol | Project-wide symbol rename (`vim.lsp.buf.rename`). |
 | `<leader>ca` | Code Actions | Display and apply available code fixes/refactors (`vim.lsp.buf.code_action`). |
 | `[d` | Previous Diagnostic | Jump cursor to previous diagnostic error/warning (`vim.diagnostic.goto_prev`). |
 | `]d` | Next Diagnostic | Jump cursor to next diagnostic error/warning (`vim.diagnostic.goto_next`). |
 | `<leader>d` | Diagnostic Float | Open floating window with complete diagnostic error message (`vim.diagnostic.open_float`). |
 | `<leader>q` | Location List | Populate buffer diagnostics into the location list window (`vim.diagnostic.setloclist`). |
+
+### Function Arguments Reminder (VS Code Style)
+- **Automatic Signature Help**: Typing `(` or `,` inside any function call automatically opens a floating window detailing the function's parameters, parameter types, docstrings, and highlighting the active argument being typed.
+- **Inlay Hints**: Enabled automatically for language servers that support them, displaying parameter names directly inline before each argument (e.g., `pthread_atfork(__prepare: NULL, ...)`). Toggle anytime with `<leader>th`.
+- **Manual Reminders**: Press <kbd>Ctrl</kbd>+<kbd>s</kbd> at any point in Insert or Normal mode to bring up or refresh the arguments popup.
 
 ---
 

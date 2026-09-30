@@ -63,6 +63,23 @@ keymap.set("n", "<leader>n", ":NvimTreeToggle<CR>", { desc = "Toggle file tree" 
 keymap.set("n", "<C-h>", "<C-w>h", { desc = "Mover para a janela da esquerda" })
 keymap.set("n", "<C-l>", "<C-w>l", { desc = "Mover para a janela da direita" })
 
+-- Modo Normal: Exibir documentação da função sob o cursor (LSP ou Ajuda do Vim)
+keymap.set("n", "<C-k>", function()
+    local bufnr = vim.api.nvim_get_current_buf()
+    local clients = vim.lsp.get_clients({ bufnr = bufnr, method = "textDocument/hover" })
+    if #clients > 0 then
+        vim.lsp.buf.hover()
+    else
+        local cword = vim.fn.expand("<cword>")
+        if cword and cword ~= "" then
+            local ok = pcall(vim.cmd.help, cword)
+            if not ok then
+                vim.cmd("normal! K")
+            end
+        end
+    end
+end, { desc = "Exibir documentação / ajuda" })
+
 -- Integração do Lazygit em uma aba limpa e dedicada
 keymap.set("n", "<leader>gg", function()
     vim.cmd("tabnew")

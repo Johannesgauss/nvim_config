@@ -82,3 +82,6 @@ Abstract Syntax Tree (AST) parsing and semantic highlighting are driven by [nvim
 
 ### Highlighting
 Syntax highlighting is enabled globally via AST token parsing, providing accurate highlighting and indentation rules even across complex, nested syntax structures.
+
+### Compatibility Engine (Neovim 0.12+)
+Includes an automated runtime compatibility shim in [`lua/plugins/treesitter.lua`](file:///home/cloud/.config/nvim/lua/plugins/treesitter.lua) that reconciles tree-sitter query capture structures between Neovim 0.12+ (which passes `TSNode[]` lists to directives and predicates) and `nvim-treesitter` (`master` branch). This prevents decoration provider errors (`conceal_line` / `get_range`) during markdown parsing and hover documentation popups.

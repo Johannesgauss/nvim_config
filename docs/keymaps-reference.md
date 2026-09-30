@@ -21,6 +21,7 @@ This cheat sheet compiles all keybindings across the configuration, grouped by f
 | :---: | :--- | :--- | :--- |
 | **Normal** | `<C-h>` | `<C-w>h` | Focus the window to the left. |
 | **Normal** | `<C-l>` | `<C-w>l` | Focus the window to the right. |
+| **Normal** | `<C-k>` | Docs / Help | Display documentation for symbol under cursor (LSP hover with Vim help fallback). |
 | **Terminal** | `<C-h>` | Jump left | Exit terminal insert mode and jump to window on the left. |
 | **Terminal** | `<C-l>` | Jump right | Exit terminal insert mode and jump to window on the right. |
 | **Terminal** | `<C-k>` | Jump up | Exit terminal insert mode and jump to window above. |
@@ -83,7 +84,10 @@ This cheat sheet compiles all keybindings across the configuration, grouped by f
 | **Normal** | `gi` | `vim.lsp.buf.implementation` | Jump to symbol implementation. |
 | **Normal** | `gr` | `vim.lsp.buf.references` | Show all references across project. |
 | **Normal** | `K` | `vim.lsp.buf.hover` | Display hover documentation popup. |
-| **Normal** | `<C-k>` | `vim.lsp.buf.signature_help` | Display function signature helper. |
+| **Normal** | `<C-k>` | `vim.lsp.buf.hover` | Display function / hover documentation popup. |
+| **Normal / Insert** | `<C-s>` | `vim.lsp.buf.signature_help` | Remind function arguments / signature popup. |
+| **Normal** | `<leader>k` | `vim.lsp.buf.signature_help` | Remind function arguments / signature popup. |
+| **Normal** | `<leader>th` | `vim.lsp.inlay_hint` | Toggle inline argument name / type hints. |
 | **Normal** | `<leader>rn` | `vim.lsp.buf.rename` | Rename symbol across project. |
 | **Normal** | `<leader>ca` | `vim.lsp.buf.code_action` | Show and execute code actions / fixes. |
 | **Normal** | `[d` | `vim.diagnostic.goto_prev` | Jump to previous diagnostic error/warning. |
