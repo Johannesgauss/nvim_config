@@ -11,7 +11,7 @@ Welcome to the comprehensive documentation for this Neovim configuration. This d
 | [Architecture & Lifecycle](file:///home/cloud/.config/nvim/docs/architecture.md) | High-level system design, bootstrap mechanism via `lazy.nvim`, initialization sequence, and directory topology. |
 | [Core Configuration](file:///home/cloud/.config/nvim/docs/core-configuration.md) | Editor options (indentation, tabs, splits, clipboard) and core global keybindings (terminals, window navigation, lazygit). |
 | [UI & Appearance](file:///home/cloud/.config/nvim/docs/ui-and-appearance.md) | Catppuccin Mocha theme, custom dynamic statusline, and the persistent `:ToggleVimLook` classic Vim appearance engine. |
-| [Plugins & Extensions](file:///home/cloud/.config/nvim/docs/plugins.md) | Detailed specifications and configuration for Nvim-Tree (with NERDTree emulation), Diffview, Autopairs, and Treesitter. |
+| [Plugins & Extensions](file:///home/cloud/.config/nvim/docs/plugins.md) | Detailed specifications and configuration for Telescope, Nvim-Tree (with NERDTree emulation), Diffview, Autopairs, and Treesitter. |
 | [LSP & Autocompletion](file:///home/cloud/.config/nvim/docs/lsp-and-completion.md) | Language Server Protocol (`mason`, `lspconfig`), configured language servers (`ts_ls`, `clangd`, `pyright`), diagnostics, and `nvim-cmp`. |
 | [AI Integrations](file:///home/cloud/.config/nvim/docs/ai-integrations.md) | AI assistant panels and completions: Google Antigravity CLI, Claude Code, GitHub Copilot (with privacy guard), and Ollama/Minuet. |
 | [Keymaps Quick Reference](file:///home/cloud/.config/nvim/docs/keymaps-reference.md) | Complete reference cheat sheet of all keybindings organized by mode and functional category. |
@@ -32,7 +32,7 @@ The configuration follows standard Neovim Lua conventions rooted at `~/.config/n
 │   ├── architecture.md           # System design & lifecycle
 │   ├── core-configuration.md     # Editor options & global maps
 │   ├── ui-and-appearance.md      # Theme, statusline, & Vim look
-│   ├── plugins.md                # Treesitter, Tree, Diffview, Autopairs
+│   ├── plugins.md                # Telescope, Treesitter, Tree, Diffview, Autopairs
 │   ├── lsp-and-completion.md     # Mason, LSP servers, nvim-cmp
 │   ├── ai-integrations.md        # Antigravity, Claude, Copilot, Ollama
 │   └── keymaps-reference.md      # Master keymap cheat sheet
@@ -45,6 +45,7 @@ The configuration follows standard Neovim Lua conventions rooted at `~/.config/n
     ├── plugins/
     │   ├── theme.lua             # Catppuccin theme configuration
     │   ├── tree.lua              # Nvim-Tree with NERDTree mappings
+    │   ├── telescope.lua         # Telescope fuzzy finder & live grep
     │   ├── treesitter.lua        # Syntax highlighting
     │   ├── autopairs.lua         # Pair auto-closing
     │   ├── diffview.lua          # Git diff visualizer & interactive staging

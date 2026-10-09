@@ -63,7 +63,23 @@ This cheat sheet compiles all keybindings across the configuration, grouped by f
 
 ---
 
-## 5. Git & Diffview
+## 5. Fuzzy Finder & Search (`telescope.nvim`)
+
+| Mode | Shortcut | Target Action | Description |
+| :---: | :--- | :--- | :--- |
+| **Normal** | `<leader>F` | `live_grep` | Search text across all project files (via `ripgrep`). |
+| **Normal** | `<leader>f` | `find_files` | Search files by name across the project. |
+| **Normal** | `<leader>fs` | `grep_string` | Search occurrences of the word/string under the cursor. |
+| **Normal** | `<leader>fb` | `buffers` | List and fuzzy-search open buffers. |
+| **Normal** | `<leader>fh` | `help_tags` | Search Neovim documentation and help tags. |
+| **Insert** | `<C-j>` *(in Telescope)* | Next Result | Move selection down to next search match. |
+| **Insert** | `<C-k>` *(in Telescope)* | Previous Result | Move selection up to previous search match. |
+| **Insert / Normal** | `<CR>` *(in Telescope)* | Open Item | Open selected file/location in current window. |
+| **Insert / Normal** | `<Esc>` *(in Telescope)* | Close | Dismiss / close Telescope prompt. |
+
+---
+
+## 6. Git & Diffview
 
 | Mode | Shortcut | Command / Action | Description |
 | :---: | :--- | :--- | :--- |
@@ -75,7 +91,7 @@ This cheat sheet compiles all keybindings across the configuration, grouped by f
 
 ---
 
-## 6. LSP & Diagnostics
+## 7. LSP & Diagnostics
 
 | Mode | Shortcut | Target Function | Description |
 | :---: | :--- | :--- | :--- |
@@ -97,7 +113,7 @@ This cheat sheet compiles all keybindings across the configuration, grouped by f
 
 ---
 
-## 7. Autocompletion (`nvim-cmp`)
+## 8. Autocompletion (`nvim-cmp`)
 
 | Mode | Shortcut | Description |
 | :---: | :--- | :--- |
@@ -114,7 +130,7 @@ This cheat sheet compiles all keybindings across the configuration, grouped by f
 
 ---
 
-## 8. AI Assistants & Autocomplete
+## 9. AI Assistants & Autocomplete
 
 ### Google Antigravity
 | Mode | Shortcut | Description |
@@ -141,10 +157,11 @@ This cheat sheet compiles all keybindings across the configuration, grouped by f
 
 ---
 
-## 9. Custom User Commands
+## 10. Custom User Commands
 
 | Command | Description |
 | :--- | :--- |
+| `:Telescope <builtin>` | Opens Telescope with any builtin picker (e.g. `live_grep`, `find_files`, `help_tags`). |
 | `:ToggleVimLook` | Toggles between classic Vim look (16 ANSI colors, `colorscheme vim`, `notermguicolors`, no signcolumn) and modern look (`catppuccin-mocha`, truecolor, statusline icons). Choice is persisted across restarts. |
 | `:CopilotStart` | Validates directory safety whitelist and initializes GitHub Copilot and CopilotChat. |
 | `:DiffviewOpen` | Opens the Git diff split viewer. |

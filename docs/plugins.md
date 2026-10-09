@@ -1,6 +1,6 @@
 # Plugins & Extensions
 
-This document details the configuration, keybindings, and behaviors of the editor's core utility plugins: Nvim-Tree, Diffview, Autopairs, and Treesitter.
+This document details the configuration, keybindings, and behaviors of the editor's core utility plugins: Telescope, Nvim-Tree, Diffview, Autopairs, and Treesitter.
 
 ---
 
@@ -85,3 +85,37 @@ Syntax highlighting is enabled globally via AST token parsing, providing accurat
 
 ### Compatibility Engine (Neovim 0.12+)
 Includes an automated runtime compatibility shim in [`lua/plugins/treesitter.lua`](file:///home/cloud/.config/nvim/lua/plugins/treesitter.lua) that reconciles tree-sitter query capture structures between Neovim 0.12+ (which passes `TSNode[]` lists to directives and predicates) and `nvim-treesitter` (`master` branch). This prevents decoration provider errors (`conceal_line` / `get_range`) during markdown parsing and hover documentation popups.
+
+---
+
+## 5. Fuzzy Finder & Project Search (`lua/plugins/telescope.lua`)
+
+Interactive fuzzy finding and project-wide text search are powered by [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) and accelerated by [telescope-fzf-native.nvim](https://github.com/nvim-telescope/telescope-fzf-native.nvim).
+
+### Keybindings & Commands
+
+| Keymap | Command | Description |
+| :--- | :--- | :--- |
+| `<leader>F` | `live_grep` | Search text occurrences across all project files using `ripgrep`. |
+| `<leader>f` | `find_files` | Search files by name across the project. |
+| `<leader>fs` | `grep_string` | Search occurrences of the word/string under the cursor. |
+| `<leader>fb` | `buffers` | List and fuzzy-search currently open buffers. |
+| `<leader>fh` | `help_tags` | Search Neovim documentation and help tags. |
+
+### Navigation Inside Telescope Prompt
+
+| Keymap | Mode | Description |
+| :---: | :---: | :--- |
+| `<C-j>` | Insert | Move selection down to next result. |
+| `<C-k>` | Insert | Move selection up to previous result. |
+| `<CR>` | Insert / Normal | Open selected item in the current window. |
+| `<Esc>` | Insert / Normal | Dismiss / close Telescope prompt. |
+
+### Features & Configuration
+- **Lazy Loading**: Loaded dynamically on demand whenever `<leader>F`, `<leader>f`, or `:Telescope` is triggered.
+- **FZF Native Sorter**: Automatically compiles and loads `telescope-fzf-native.nvim` for C-speed fuzzy sorting.
+- **Ergonomic Layout**: The prompt bar is located at the top (`sorting_strategy = "ascending"`), with a side-by-side preview window occupying 55% width on the right.
+- **CLI Search Tools**:
+  - `rg` ([ripgrep](https://github.com/BurntSushi/ripgrep)): Standalone binary installed in `~/.local/bin/rg` for fast multi-threaded regex text search.
+  - `fd` ([fd](https://github.com/sharkdp/fd)): Standalone binary installed in `~/.local/bin/fd` for rapid directory traversal.
+

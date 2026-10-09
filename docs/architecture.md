@@ -24,6 +24,7 @@ When Neovim starts, [`init.lua`](file:///home/cloud/.config/nvim/init.lua) serve
 4. require("lazy").setup(...)   ──► Loads lua/plugins/* and injected lua/ai specs
    ├── Theme (Catppuccin)
    ├── Treesitter
+   ├── Telescope (Fuzzy finder & live grep)
    ├── Nvim-Tree
    ├── Diffview
    ├── Autopairs

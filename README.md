@@ -18,6 +18,7 @@ A modular Neovim setup using [lazy.nvim](https://github.com/folke/lazy.nvim) for
 ## Features
 
 - **Package Manager**: [lazy.nvim](https://github.com/folke/lazy.nvim)
+- **Fuzzy Finder & Search**: [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) (live grep & file search)
 - **LSP & Completion**: Native Neovim LSP, [mason.nvim](https://github.com/williamboman/mason.nvim), [nvim-cmp](https://github.com/hrsh7th/nvim-cmp)
 - **Syntax**: [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter)
 - **File Explorer**: [nvim-tree](https://github.com/nvim-tree/nvim-tree.lua)
@@ -32,7 +33,7 @@ Full documentation is available in the [`docs/`](docs/README.md) directory:
 - [Architecture & Lifecycle](docs/architecture.md)
 - [Core Configuration & Options](docs/core-configuration.md)
 - [UI, Statusline & :ToggleVimLook](docs/ui-and-appearance.md)
-- [Plugins (Tree, Diffview, Autopairs, Treesitter)](docs/plugins.md)
+- [Plugins (Tree, Diffview, Telescope, Autopairs, Treesitter)](docs/plugins.md)
 - [LSP & Autocompletion](docs/lsp-and-completion.md)
 - [AI Integrations (Antigravity, Claude, Copilot, Ollama)](docs/ai-integrations.md)
 - [Keymaps Cheat Sheet](docs/keymaps-reference.md)
