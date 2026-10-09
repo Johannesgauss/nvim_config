@@ -74,12 +74,23 @@ local function enable_vim_look(notify)
     vim.o.ruler = true
     vim.o.showcmd = true
     vim.opt.fillchars = { eob = "~", vert = "|" }
-    apply_win_options(true, "no", false)
+    apply_win_options(true, saved.signcolumn or "auto", false)
 
+    -- Ensure sign column blends seamlessly with background in 16-color mode
+    vim.api.nvim_set_hl(0, "SignColumn", { ctermbg = "NONE", bg = "NONE" })
+
+    -- Maintain full diagnostic error indicators (signs, underline, virtual text)
     pcall(vim.diagnostic.config, {
-        virtual_text = false,
-        signs = false,
-        underline = false,
+        virtual_text = { prefix = "●" },
+        signs = {
+            text = {
+                [vim.diagnostic.severity.ERROR] = "✘",
+                [vim.diagnostic.severity.WARN] = "▲",
+                [vim.diagnostic.severity.HINT] = "⚑",
+                [vim.diagnostic.severity.INFO] = "»",
+            },
+        },
+        underline = true,
     })
 
     is_vim_look = true
@@ -108,7 +119,14 @@ local function disable_vim_look(notify)
 
     pcall(vim.diagnostic.config, {
         virtual_text = { prefix = "●" },
-        signs = true,
+        signs = {
+            text = {
+                [vim.diagnostic.severity.ERROR] = "✘",
+                [vim.diagnostic.severity.WARN] = "▲",
+                [vim.diagnostic.severity.HINT] = "⚑",
+                [vim.diagnostic.severity.INFO] = "»",
+            },
+        },
         underline = true,
     })
 

@@ -76,10 +76,10 @@ Neovim defaults to modern graphical aesthetics (24-bit truecolor, floating diagn
 | **Mode Display** | Hidden from command line (`showmode = false`) | Visible bold text at bottom left (`-- INSERT --`, `-- VISUAL --`) |
 | **Ruler** | Disabled / in custom statusline | Enabled (`ruler = true`) |
 | **Line Numbers** | Hybrid (`number = true`, `relativenumber = true`) | Hybrid (`number = true`, `relativenumber = true`) |
-| **Sign Column** | `signcolumn = "auto"` (gutter padding) | `signcolumn = "no"` (code hugs left border) |
+| **Sign Column** | `signcolumn = "auto"` | `signcolumn = "auto"` (expands only when diagnostics exist) |
 | **Cursor Line** | Optional horizontal highlight | `cursorline = false` |
 | **Empty Lines** | Hidden / subtle | Classic Blue `~` tildes (`fillchars = { eob = "~" }`) |
-| **Diagnostics** | Virtual text inline (`● Error: ...`) & signs | Suppressed virtual text & signs for distraction-free editing |
+| **Diagnostics** | Full LSP indicators (signs, underline, inline virtual text) | Full LSP indicators (signs, underline, inline virtual text) |
 
 ### Persistence Mechanism
 - State is written to **`~/.local/state/nvim/vim_look_enabled`** (`vim.fn.stdpath("state")`).
