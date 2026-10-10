@@ -37,7 +37,11 @@ return {
       local cmp_nvim_lsp = require("cmp_nvim_lsp")
 
       -- Advertise nvim-cmp capabilities to LSP servers
-      local capabilities = cmp_nvim_lsp.default_capabilities()
+      local capabilities = vim.tbl_deep_extend(
+        "force",
+        vim.lsp.protocol.make_client_capabilities(),
+        cmp_nvim_lsp.default_capabilities()
+      )
 
       -- Stabilize floating preview for signature help so it never flickers or oscillates while typing
       local util = require("vim.lsp.util")
@@ -274,6 +278,71 @@ return {
       -- Configure rust_analyzer (Rust)
       vim.lsp.config("rust_analyzer", {
         cmd = { "rust-analyzer" },
+        root_dir = function(bufnr, on_dir)
+          local fname = vim.api.nvim_buf_get_name(bufnr)
+          if fname == "" then return end
+
+          -- 1. Check for Cargo.toml
+          local cargo_crate_dir = vim.fs.root(fname, { "Cargo.toml" })
+          if cargo_crate_dir then
+            local cmd = {
+              "cargo",
+              "metadata",
+              "--no-deps",
+              "--format-version",
+              "1",
+              "--manifest-path",
+              vim.fs.joinpath(cargo_crate_dir, "Cargo.toml"),
+            }
+            local ok, proc = pcall(vim.system, cmd, { text = true })
+            if ok and proc then
+              local output = proc:wait()
+              if output.code == 0 and output.stdout then
+                local ok_json, result = pcall(vim.json.decode, output.stdout)
+                if ok_json and result and result.workspace_root then
+                  on_dir(vim.fs.normalize(result.workspace_root))
+                  return
+                end
+              end
+            end
+            on_dir(cargo_crate_dir)
+            return
+          end
+
+          -- 2. Check for rust-project.json
+          local rust_proj = vim.fs.root(fname, { "rust-project.json" })
+          if rust_proj then
+            on_dir(rust_proj)
+            return
+          end
+
+          -- 3. Standalone / non-Cargo Rust file:
+          -- Avoid using .git root when no Cargo.toml or rust-project.json exists,
+          -- as rust-analyzer fails to fetch a workspace and disables diagnostics.
+          on_dir(fname)
+        end,
+        before_init = function(init_params, config)
+          -- Automatically register standalone Rust files as linked projects
+          local fname = vim.api.nvim_buf_get_name(0)
+          local has_cargo = (fname ~= "") and vim.fs.root(fname, { "Cargo.toml", "rust-project.json" })
+          if not has_cargo and fname ~= "" and fname:match("%.rs$") then
+            config.settings = config.settings or {}
+            config.settings["rust-analyzer"] = config.settings["rust-analyzer"] or {}
+            local existing_linked = config.settings["rust-analyzer"].linkedProjects or {}
+            local already_present = false
+            for _, p in ipairs(existing_linked) do
+              if p == fname then already_present = true break end
+            end
+            if not already_present then
+              table.insert(existing_linked, fname)
+            end
+            config.settings["rust-analyzer"].linkedProjects = existing_linked
+          end
+
+          if config.settings and config.settings["rust-analyzer"] then
+            init_params.initializationOptions = config.settings["rust-analyzer"]
+          end
+        end,
         settings = {
           ["rust-analyzer"] = {
             cargo = {
@@ -293,6 +362,9 @@ return {
             },
             diagnostics = {
               enable = true,
+              experimental = {
+                enable = true,
+              },
             },
             inlayHints = {
               bindingModeHints = {
