@@ -21,7 +21,7 @@ return {
     dependencies = { "williamboman/mason.nvim" },
     config = function()
         require("mason-lspconfig").setup({
-            ensure_installed = { "ts_ls", "clangd", "lua_ls", "pyright" },
+            ensure_installed = { "ts_ls", "clangd", "lua_ls", "pyright", "rust_analyzer" },
             -- handlers = { -- Configuração padrão para todos os servidores instalados pelo Mason function(server_name) require("lspconfig")[server_name].setup({}) end, },
         })
      end,
@@ -271,8 +271,65 @@ return {
         },
       })
 
+      -- Configure rust_analyzer (Rust)
+      vim.lsp.config("rust_analyzer", {
+        cmd = { "rust-analyzer" },
+        settings = {
+          ["rust-analyzer"] = {
+            cargo = {
+              allFeatures = true,
+              loadOutDirsFromCheck = true,
+              buildScripts = {
+                enable = true,
+              },
+            },
+            -- Check on save with Clippy
+            check = {
+              command = "clippy",
+              enable = true,
+            },
+            procMacro = {
+              enable = true,
+            },
+            diagnostics = {
+              enable = true,
+            },
+            inlayHints = {
+              bindingModeHints = {
+                enable = false,
+              },
+              chainingHints = {
+                enable = true,
+              },
+              closingBraceHints = {
+                enable = true,
+                minLines = 25,
+              },
+              closureReturnTypeHints = {
+                enable = "never",
+              },
+              lifetimeElisionHints = {
+                enable = "never",
+                useParameterNames = false,
+              },
+              parameterHints = {
+                enable = true,
+              },
+              reborrowHints = {
+                enable = "never",
+              },
+              typeHints = {
+                enable = true,
+                hideClosureInitialization = false,
+                hideNamedConstructor = false,
+              },
+            },
+          },
+        },
+      })
+
       -- Enable servers
-      vim.lsp.enable({ "clangd", "pyright", "ts_ls", "lua_ls" })
+      vim.lsp.enable({ "clangd", "pyright", "ts_ls", "lua_ls", "rust_analyzer" })
 
       -- Configure diagnostic icons/signs
       local signs = { Error = "✘", Warn = "▲", Hint = "⚑", Info = "»" }

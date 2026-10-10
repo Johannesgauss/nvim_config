@@ -113,7 +113,7 @@ function M.find_class_symbol(symbols, target_line, type_names)
 
   local function search(sym_list)
     for _, sym in ipairs(sym_list or {}) do
-      local is_class_kind = (sym.kind == 5 or sym.kind == 11 or sym.kind == 23)
+      local is_class_kind = (sym.kind == 5 or sym.kind == 10 or sym.kind == 11 or sym.kind == 23)
       local in_line_range = target_line and (target_line >= sym.range.start.line and target_line <= sym.range["end"].line)
       local has_children = sym.children and #sym.children > 0
 
@@ -156,7 +156,7 @@ end
 
 --- Builds a markdown breakdown of the class components and methods
 function M.format_class_details(bufnr, class_sym)
-  local kind_labels = { [5] = "Class", [11] = "Interface", [23] = "Struct" }
+  local kind_labels = { [5] = "Class", [10] = "Enum", [11] = "Trait / Interface", [23] = "Struct" }
   local kind_name = kind_labels[class_sym.kind] or "Class / Struct"
 
   local lines = {
@@ -226,6 +226,14 @@ function M.extract_types_from_hover(hover_lines)
     if t3 then add(t3) end
     local t4 = line:match("###%s+type%-alias%s+`?([%w_]+)`?")
     if t4 then add(t4) end
+
+    -- Rust hover patterns e.g. "struct Foo", "enum Foo", "trait Foo"
+    local rs_st = line:match("struct%s+([%w_]+)")
+    if rs_st then add(rs_st) end
+    local rs_en = line:match("enum%s+([%w_]+)")
+    if rs_en then add(rs_en) end
+    local rs_tr = line:match("trait%s+([%w_]+)")
+    if rs_tr then add(rs_tr) end
   end
   return names
 end
@@ -392,7 +400,8 @@ end
 function M.show_class_popup(bufnr, class_sym)
   local lines = M.format_class_details(bufnr, class_sym)
   local util = require("vim.lsp.util")
-  local k = class_sym.kind == 5 and "Class" or (class_sym.kind == 11 and "Interface" or "Struct")
+  local kind_labels = { [5] = "Class", [10] = "Enum", [11] = "Trait / Interface", [23] = "Struct" }
+  local k = kind_labels[class_sym.kind] or "Class / Struct"
   util.open_floating_preview(lines, "markdown", {
     border = "rounded",
     focus_id = "class_inspector",
