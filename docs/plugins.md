@@ -79,6 +79,7 @@ Abstract Syntax Tree (AST) parsing and semantic highlighting are driven by [nvim
 - `lua` (Neovim configuration & plugins)
 - `vim` & `vimdoc` (Vimscript & documentation)
 - `markdown` & `markdown_inline` (Notes and documentation)
+- `rust` (Rust language)
 
 ### Highlighting
 Syntax highlighting is enabled globally via AST token parsing, providing accurate highlighting and indentation rules even across complex, nested syntax structures.

@@ -17,6 +17,7 @@ This document explains the Language Server Protocol (LSP) setup, Mason package m
   - `clangd` (C and C++)
   - `lua_ls` (Lua & Neovim API runtime)
   - `pyright` (Python)
+  - `rust_analyzer` (Rust)
 
 ---
 
@@ -30,6 +31,7 @@ The native Neovim LSP client is configured via [nvim-lspconfig](https://github.c
 | **`clangd`** | C, C++ | Standard compilation database and header indexing. |
 | **`pyright`** | Python | Configured with `autoSearchPaths = true`, `useLibraryCodeForTypes = true`, and `diagnosticMode = "workspace"`. |
 | **`lua_ls`** | Lua, Neovim Configs | Configured with `LuaJIT` runtime, `vim` globals, and Neovim runtime library awareness. |
+| **`rust_analyzer`** | Rust | Configured with Cargo build scripts, proc-macro expansion, Clippy check on save, type/chaining/closing-brace inlay hints. |
 
 ---
 
