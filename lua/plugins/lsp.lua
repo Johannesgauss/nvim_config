@@ -153,6 +153,7 @@ return {
           vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous diagnostic", buffer = bufnr })
           vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic", buffer = bufnr })
           vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, { desc = "Open diagnostic float", buffer = bufnr })
+          vim.keymap.set("n", "ge", vim.diagnostic.open_float, { desc = "Open diagnostic float", buffer = bufnr })
           vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Add diagnostics to loclist", buffer = bufnr })
 
           -- Enable inlay hints if supported by the client

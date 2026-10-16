@@ -63,6 +63,11 @@ keymap.set("n", "<leader>n", ":NvimTreeToggle<CR>", { desc = "Toggle file tree" 
 keymap.set("n", "<C-h>", "<C-w>h", { desc = "Mover para a janela da esquerda" })
 keymap.set("n", "<C-l>", "<C-w>l", { desc = "Mover para a janela da direita" })
 
+-- Modo Normal: Exibir mensagem de erro/diagnóstico em uma janela flutuante
+keymap.set("n", "ge", function()
+    vim.diagnostic.open_float(nil, { focusable = true, border = "rounded", source = "always" })
+end, { desc = "Exibir mensagem de erro/diagnóstico" })
+
 -- Modo Normal: Exibir documentação da função sob o cursor (LSP ou Ajuda do Vim)
 keymap.set("n", "<C-k>", function()
     local bufnr = vim.api.nvim_get_current_buf()
