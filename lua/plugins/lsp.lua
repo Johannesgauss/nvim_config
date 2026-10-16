@@ -228,7 +228,7 @@ return {
         capabilities = capabilities,
       })
 
-      -- Configure clangd (C/C++) with argument placeholders
+      -- Configure clangd (C/C++) with argument placeholders and project-root include resolution
       vim.lsp.config("clangd", {
         cmd = {
           "clangd",
@@ -237,6 +237,88 @@ return {
           "--completion-style=detailed",
           "--function-arg-placeholders=1",
         },
+        root_dir = function(bufnr, on_dir)
+          local fname = vim.api.nvim_buf_get_name(bufnr)
+          if fname == "" then return end
+
+          -- Find parent directory of any "src" folder in the file path
+          local src_parent = nil
+          for dir in vim.fs.parents(fname) do
+            if vim.fs.basename(dir) == "src" then
+              src_parent = vim.fs.dirname(dir)
+              break
+            end
+          end
+
+          local markers = {
+            "compile_commands.json",
+            "compile_flags.txt",
+            ".clangd",
+            ".clang-tidy",
+            ".clang-format",
+            "CMakeLists.txt",
+            "Makefile",
+            "meson.build",
+            "configure.ac",
+            ".git",
+          }
+          local root = vim.fs.root(fname, markers)
+          if not root or root == vim.env.HOME then
+            root = src_parent or vim.fn.getcwd()
+          end
+
+          on_dir(root)
+        end,
+        before_init = function(init_params, config)
+          local include_dirs = {}
+          local seen = {}
+          local function add_dir(d)
+            if d and d ~= "" and not seen[d] and vim.fn.isdirectory(d) == 1 then
+              seen[d] = true
+              table.insert(include_dirs, d)
+            end
+          end
+
+          -- 1. Workspace root_dir
+          add_dir(config.root_dir)
+
+          -- 2. Any ancestor directory that is the parent of a "src" directory
+          local fname = vim.api.nvim_buf_get_name(0)
+          if fname ~= "" then
+            for dir in vim.fs.parents(fname) do
+              if vim.fs.basename(dir) == "src" then
+                add_dir(vim.fs.dirname(dir))
+              end
+            end
+          end
+
+          -- 3. Current working directory
+          add_dir(vim.fn.getcwd())
+
+          -- 4. Also add top-level "include" directories if present
+          local base_count = #include_dirs
+          for i = 1, base_count do
+            add_dir(vim.fs.joinpath(include_dirs[i], "include"))
+          end
+
+          -- Pass -I<dir> via clangd initializationOptions.fallbackFlags
+          init_params.initializationOptions = init_params.initializationOptions or {}
+          local fallback_flags = init_params.initializationOptions.fallbackFlags or {}
+          for _, d in ipairs(include_dirs) do
+            table.insert(fallback_flags, "-I" .. d)
+          end
+          init_params.initializationOptions.fallbackFlags = fallback_flags
+
+          -- Also export CPATH so clangd resolves root-relative includes even with compile_commands.json
+          if #include_dirs > 0 then
+            config.cmd_env = config.cmd_env or {}
+            local cpath = table.concat(include_dirs, ":")
+            if vim.env.CPATH and vim.env.CPATH ~= "" then
+              cpath = cpath .. ":" .. vim.env.CPATH
+            end
+            config.cmd_env.CPATH = cpath
+          end
+        end,
       })
 
       -- Configure pyright (Python)
