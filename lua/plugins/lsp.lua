@@ -282,28 +282,44 @@ return {
           -- 1. Workspace root_dir
           add_dir(config.root_dir)
 
-          -- 2. Any ancestor directory that is the parent of a "src" directory
-          local fname = vim.api.nvim_buf_get_name(0)
+          -- 2. Add src/ and include/ directories under root_dir
+          if config.root_dir then
+            add_dir(vim.fs.joinpath(config.root_dir, "src"))
+            add_dir(vim.fs.joinpath(config.root_dir, "kernel", "src"))
+            add_dir(vim.fs.joinpath(config.root_dir, "include"))
+            add_dir(vim.fs.joinpath(config.root_dir, "src", "drivers", "gfx"))
+          end
+
+          -- 3. Any ancestor directory that is named "src" or its parent
+          local cur_buf = vim.api.nvim_get_current_buf()
+          local fname = vim.api.nvim_buf_get_name(cur_buf)
           if fname ~= "" then
             for dir in vim.fs.parents(fname) do
               if vim.fs.basename(dir) == "src" then
-                add_dir(vim.fs.dirname(dir))
+                add_dir(dir)                    -- The src folder itself (e.g. repo/src)
+                add_dir(vim.fs.dirname(dir))    -- The root parent (e.g. repo)
               end
             end
           end
 
-          -- 3. Current working directory
+          -- 4. Current working directory and its src/
           add_dir(vim.fn.getcwd())
+          add_dir(vim.fs.joinpath(vim.fn.getcwd(), "src"))
 
-          -- 4. Also add top-level "include" directories if present
+          -- 5. Also add nested include directories if present
           local base_count = #include_dirs
           for i = 1, base_count do
             add_dir(vim.fs.joinpath(include_dirs[i], "include"))
           end
 
-          -- Pass -I<dir> via clangd initializationOptions.fallbackFlags
+          -- Pass -I<dir> and C standard flags via clangd initializationOptions.fallbackFlags
           init_params.initializationOptions = init_params.initializationOptions or {}
           local fallback_flags = init_params.initializationOptions.fallbackFlags or {}
+
+          -- Standard C flags for bare-metal/kernel code (enables 'restrict' in C & C++ header contexts)
+          table.insert(fallback_flags, "-ffreestanding")
+          table.insert(fallback_flags, "-Drestrict=__restrict")
+
           for _, d in ipairs(include_dirs) do
             table.insert(fallback_flags, "-I" .. d)
           end

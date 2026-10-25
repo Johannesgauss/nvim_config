@@ -19,3 +19,4 @@ require("lazy").setup({
 
 require("ui.statusline")
 require("ui.vim_look")
+require("ui.markdown_view")

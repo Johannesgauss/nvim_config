@@ -120,3 +120,44 @@ Interactive fuzzy finding and project-wide text search are powered by [telescope
   - `rg` ([ripgrep](https://github.com/BurntSushi/ripgrep)): Standalone binary installed in `~/.local/bin/rg` for fast multi-threaded regex text search.
   - `fd` ([fd](https://github.com/sharkdp/fd)): Standalone binary installed in `~/.local/bin/fd` for rapid directory traversal.
 
+---
+
+## 6. In-Buffer Markdown Rendering (`lua/plugins/markdown.lua`)
+
+Inline rich visual rendering of Markdown documentation is powered by [render-markdown.nvim](https://github.com/MeanderingProgrammer/render-markdown.nvim).
+
+### Features
+- **Headings**: Styled title icons (`󰲡`, `󰲣`, `󰲥`, `󰲧`, `󰲩`, `󰲫`) and colored background bands.
+- **Tables**: Formatted full box-drawing borders (`┌`, `┬`, `┐`, `├`, `┼`, `┤`, `└`, `┴`, `┘`, `│`, `─`) with column alignment.
+- **Code Blocks**: Background highlighting with language tag labels.
+- **Checkboxes & Lists**: Rendered interactive bullet glyphs (`●`, `○`, `◆`) and check indicators (`[ ]`, `[x]`).
+- **Callout Quotes**: GitHub Flavored Markdown alerts (`[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`) with styled alert icons and themed color highlights.
+- **TTY Compatibility**: When `:ToggleTTY` is active, borders and bullet icons automatically switch to pure ASCII (`+`, `-`, `|`, `*`).
+
+### Shortcuts
+| Keymap | Command | Description |
+| :--- | :--- | :--- |
+| `<leader>mr` | `:RenderMarkdown toggle` | Toggles inline rich Markdown rendering on/off. |
+
+---
+
+## 7. LaTeX Rendering & Authoring (`lua/plugins/latex.lua`)
+
+LaTeX math formula rendering and full document authoring are powered by [nabla.nvim](https://github.com/jbyuki/nabla.nvim) and [vimtex](https://github.com/lervag/vimtex).
+
+### In-Buffer 2D Math Rendering (`nabla.nvim`)
+Renders mathematical notation (fractions, integrals, matrices, summations, square roots, Greek letters) directly inside Neovim with zero external binaries needed:
+- Works seamlessly in Markdown files (`$...$` and `$$...$$`) and `.tex` files.
+- Visualizes 2D equations in floating preview windows or virtual lines within the buffer.
+
+### Full Document Authoring (`vimtex`)
+- **Concealment**: Automatically conceals raw LaTeX math commands into Unicode symbols (`\alpha` $\to$ `α`, `\sum` $\to$ `∑`) with `conceallevel = 2`.
+- **Compilation**: Compatible with `latexmk` and background compiler daemons.
+- **Preview**: Interacts with external PDF viewers (Zathura, MuPDF, Okular) with forward and backward Synctex search.
+
+### Shortcuts
+| Keymap | Command | Description |
+| :--- | :--- | :--- |
+| `<leader>lp` / `<leader>mp` | `:NablaPopup` | Previews 2D LaTeX formula under cursor in a floating window. |
+| `<leader>lv` | `:NablaToggle` | Toggles 2D LaTeX formulas rendered as virtual lines above/below equations. |
+

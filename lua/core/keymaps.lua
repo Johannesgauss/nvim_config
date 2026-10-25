@@ -108,3 +108,21 @@ end, { desc = "Alternar modo TTY clássico com bordas ASCII" })
 vim.api.nvim_create_user_command("ToggleVimLook", function()
     require("ui.vim_look").toggle()
 end, { desc = "Alternar entre visual Vim clássico e moderno" })
+
+-- Visualização e Modo Leitor de Markdown
+keymap.set("n", "<leader>mv", function()
+    require("ui.markdown_view").toggle()
+end, { desc = "Alternar Modo Leitor de Markdown (Distraction-Free)" })
+
+keymap.set("n", "<leader>mr", function()
+    local ok, rm = pcall(require, "render-markdown")
+    if ok and rm.toggle then
+        rm.toggle()
+    else
+        vim.cmd("RenderMarkdown toggle")
+    end
+end, { desc = "Alternar renderização inline de Markdown" })
+
+vim.api.nvim_create_user_command("ToggleMarkdownView", function()
+    require("ui.markdown_view").toggle()
+end, { desc = "Alternar Modo Leitor de Markdown (Distraction-Free)" })

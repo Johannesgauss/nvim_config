@@ -130,7 +130,19 @@ This cheat sheet compiles all keybindings across the configuration, grouped by f
 
 ---
 
-## 9. AI Assistants & Autocomplete
+## 9. Markdown & LaTeX Viewing
+
+| Mode | Shortcut | Description |
+| :---: | :--- | :--- |
+| **Normal** | `<leader>mv` | Toggle distraction-free **Reader Mode** (`wrap`, `linebreak`, hidden numbers/signs, read-only safety, `[READ-MODE]` badge). |
+| **Normal** | `q` | Exit Reader Mode immediately and restore regular editing layout (active inside reader mode). |
+| **Normal** | `<leader>mr` | Toggle inline rich visual Markdown rendering (`render-markdown.nvim`). |
+| **Normal** | `<leader>lp` / `<leader>mp` | Preview 2D LaTeX formula under cursor in a floating popup window (`nabla.nvim`). |
+| **Normal** | `<leader>lv` | Toggle 2D LaTeX formulas rendered directly in buffer virtual lines (`nabla.nvim`). |
+
+---
+
+## 10. AI Assistants & Autocomplete
 
 ### Google Antigravity
 | Mode | Shortcut | Description |
@@ -157,10 +169,14 @@ This cheat sheet compiles all keybindings across the configuration, grouped by f
 
 ---
 
-## 10. Custom User Commands
+## 11. Custom User Commands
 
 | Command | Description |
 | :--- | :--- |
+| `:ToggleMarkdownView` | Toggles distraction-free Reader Mode on the active Markdown buffer (`<leader>mv`). |
+| `:RenderMarkdown <cmd>` | Controls in-buffer Markdown visual rendering (`toggle`, `enable`, `disable`). |
+| `:NablaPopup` | Displays a 2D rendered LaTeX popup of the formula at the cursor (`<leader>lp`). |
+| `:NablaToggle` | Toggles 2D LaTeX formulas rendered in buffer virtual lines (`<leader>lv`). |
 | `:Telescope <builtin>` | Opens Telescope with any builtin picker (e.g. `live_grep`, `find_files`, `help_tags`). |
 | `:ToggleVimLook` | Toggles between classic Vim look (16 ANSI colors, `colorscheme vim`, `notermguicolors`) and modern look (`catppuccin-mocha`, truecolor, statusline icons). Choice is persisted across restarts. |
 | `:ToggleTTY` | Toggles Linux console / TTY3 compatible mode (pure-ASCII borders, NERDTree ASCII icons in NvimTree, 16-color highlights, ASCII diagnostic signs). Choice is persisted across restarts. |

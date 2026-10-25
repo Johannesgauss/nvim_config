@@ -10,8 +10,8 @@ Welcome to the comprehensive documentation for this Neovim configuration. This d
 | :--- | :--- |
 | [Architecture & Lifecycle](file:///home/cloud/.config/nvim/docs/architecture.md) | High-level system design, bootstrap mechanism via `lazy.nvim`, initialization sequence, and directory topology. |
 | [Core Configuration](file:///home/cloud/.config/nvim/docs/core-configuration.md) | Editor options (indentation, tabs, splits, clipboard) and core global keybindings (terminals, window navigation, lazygit). |
-| [UI & Appearance](file:///home/cloud/.config/nvim/docs/ui-and-appearance.md) | Catppuccin Mocha theme, custom dynamic statusline, and the persistent `:ToggleVimLook` and `:ToggleTTY` appearance engines. |
-| [Plugins & Extensions](file:///home/cloud/.config/nvim/docs/plugins.md) | Detailed specifications and configuration for Telescope, Nvim-Tree (with NERDTree emulation), Diffview, Autopairs, and Treesitter. |
+| [UI & Appearance](file:///home/cloud/.config/nvim/docs/ui-and-appearance.md) | Catppuccin Mocha theme, custom dynamic statusline, persistent `:ToggleVimLook` and `:ToggleTTY` appearance engines, and distraction-free Markdown Reader Mode. |
+| [Plugins & Extensions](file:///home/cloud/.config/nvim/docs/plugins.md) | Detailed specifications and configuration for Telescope, Nvim-Tree (with NERDTree emulation), Diffview, Autopairs, Treesitter, Render-Markdown, and LaTeX (Nabla & VimTeX). |
 | [LSP & Autocompletion](file:///home/cloud/.config/nvim/docs/lsp-and-completion.md) | Language Server Protocol (`mason`, `lspconfig`), configured language servers (`ts_ls`, `clangd`, `pyright`), diagnostics, and `nvim-cmp`. |
 | [AI Integrations](file:///home/cloud/.config/nvim/docs/ai-integrations.md) | AI assistant panels and completions: Google Antigravity CLI, Claude Code, GitHub Copilot (with privacy guard), and Ollama/Minuet. |
 | [Keymaps Quick Reference](file:///home/cloud/.config/nvim/docs/keymaps-reference.md) | Complete reference cheat sheet of all keybindings organized by mode and functional category. |
@@ -46,13 +46,16 @@ The configuration follows standard Neovim Lua conventions rooted at `~/.config/n
     │   ├── theme.lua             # Catppuccin theme configuration
     │   ├── tree.lua              # Nvim-Tree with NERDTree mappings
     │   ├── telescope.lua         # Telescope fuzzy finder & live grep
+    │   ├── markdown.lua          # In-buffer Markdown visual rendering
+    │   ├── latex.lua             # 2D LaTeX rendering (Nabla) & VimTeX suite
     │   ├── treesitter.lua        # Syntax highlighting
     │   ├── autopairs.lua         # Pair auto-closing
     │   ├── diffview.lua          # Git diff visualizer & interactive staging
     │   └── lsp.lua               # Mason, LSP servers, nvim-cmp
     ├── ui/
     │   ├── statusline.lua        # Git-aware custom statusline
-    │   └── vim_look.lua          # Persistent :ToggleVimLook engine
+    │   ├── vim_look.lua          # Persistent :ToggleVimLook & :ToggleTTY engine
+    │   └── markdown_view.lua     # Distraction-free Markdown Reader Mode engine
     └── ai/
         ├── init.lua              # AI module spec aggregator
         ├── antigravity.lua       # Antigravity panel & diffview toggles

@@ -111,3 +111,26 @@ The `:ToggleTTY` command solves this by enabling a retro Vim style engineered sp
    - When opened in a virtual console (e.g. `Ctrl+Alt+F3`), Neovim automatically boots into TTY + Classic Vim mode.
    - When opened in a graphical terminal emulator (e.g. Alacritty, Kitty, WezTerm, GNOME Terminal), Neovim automatically boots into the Modern UI.
    - Running `:ToggleTTY` provides manual override capability whenever needed.
+
+---
+
+## 5. Markdown Viewing & Reader Mode (`lua/ui/markdown_view.lua`)
+
+For reading documentation, technical specifications, or notes directly inside Neovim without visual clutter, the configuration provides a dedicated distraction-free **Reader Mode**:
+
+```vim
+:ToggleMarkdownView
+```
+
+### Shortcuts
+- `<leader>mv`: Toggles **Reader Mode** on the active Markdown buffer.
+- `q`: While in Reader Mode, pressing `q` in Normal mode immediately exits Reader Mode and returns to standard editing.
+- `<leader>mr`: Toggles inline visual Markdown rendering (`render-markdown.nvim`).
+
+### Reader Mode Behaviors
+1. **Distraction-Free Layout**: Hides line numbers, relative numbers, sign columns, and fold columns.
+2. **Reading Ergonomics**: Enables soft line wrapping (`wrap = true`), break indenting (`breakindent = true`), and breaks lines strictly between words (`linebreak = true`).
+3. **Syntax Concealment**: Sets `conceallevel = 2` and `concealcursor = "nc"`, hiding raw Markdown tokens (`**`, `__`, `[]()`, backticks) and rendering styled text.
+4. **Safety Against Accidental Edits**: Sets `modifiable = false` and `readonly = true` to protect the document while navigating or scrolling.
+5. **Statusline Indicator**: Displays an active `[READ-MODE]` badge in the statusline so the reader's state is immediately apparent.
+6. **Restoration**: Disabling Reader Mode restores the exact previous window and buffer options.

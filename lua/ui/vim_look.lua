@@ -257,6 +257,30 @@ local function apply_tty_plugins(tty)
             end
         end
     end
+
+    -- 4. render-markdown: switch table borders and icons between pure ASCII and Unicode
+    if package.loaded["render-markdown"] then
+        local ok_rm, rm = pcall(require, "render-markdown")
+        if ok_rm and rm.setup then
+            if tty then
+                pcall(rm.setup, {
+                    heading = { icons = { "# ", "## ", "### ", "#### ", "##### ", "###### " } },
+                    bullet = { icons = { "*", "-", "+", "*" } },
+                    pipe_table = {
+                        border = { "+", "+", "+", "+", "+", "+", "+", "+", "+", "|", "-" },
+                    },
+                })
+            else
+                pcall(rm.setup, {
+                    heading = { icons = { "󰲡 ", "󰲣 ", "󰲥 ", "󰲧 ", "󰲩 ", "󰲫 " } },
+                    bullet = { icons = { "●", "○", "◆", "◇" } },
+                    pipe_table = {
+                        border = { "┌", "┬", "┐", "├", "┼", "┤", "└", "┴", "┘", "│", "─" },
+                    },
+                })
+            end
+        end
+    end
 end
 
 local function apply_tty_highlights()

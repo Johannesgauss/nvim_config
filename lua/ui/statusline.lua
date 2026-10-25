@@ -31,12 +31,14 @@ end
 function Render_Statusline()
     local workspace = get_workspace_status()
     local file_info = " %f %m"
+    local mode_badge = vim.b.markdown_view_active and " [READ-MODE]" or ""
     local align_right = "%="
     local cursor_metrics = " %l:%c │ %p%% "
 
     return table.concat({
         workspace,
         file_info,
+        mode_badge,
         align_right,
         cursor_metrics
     })
