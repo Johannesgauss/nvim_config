@@ -74,6 +74,15 @@ local function setup_treesitter_compat()
       return orig_get_range(node, source, metadata)
     end
   end
+
+  -- Compatibility shim for tree-sitter CLI v0.25+ (Gentoo, Arch, latest releases):
+  -- tree-sitter CLI v0.25+ removed the obsolete '--no-bindings' flag.
+  -- Pre-populate ts_generate_args without '--no-bindings' so nvim-treesitter doesn't fail on modern distros.
+  local ok_install, install = pcall(require, "nvim-treesitter.install")
+  if ok_install and install then
+    local abi = vim.treesitter.language_version or 14
+    install.ts_generate_args = { "generate", "--abi", tostring(abi) }
+  end
 end
 
 return {
