@@ -89,8 +89,15 @@ return {
       package.loaded["nvim-treesitter.query_predicates"] = nil
       require("nvim-treesitter.query_predicates")
     end
+    local ensure_installed = { "prisma", "lua", "vim", "vimdoc", "markdown", "markdown_inline", "rust" }
+    -- tree-sitter-latex requires the `tree-sitter` CLI binary to generate its grammar from source.
+    -- Only add 'latex' if tree-sitter CLI is available, avoiding startup errors on machines without it.
+    if vim.fn.executable("tree-sitter") == 1 then
+      table.insert(ensure_installed, "latex")
+    end
+
     require("nvim-treesitter.configs").setup({
-      ensure_installed = { "prisma", "lua", "vim", "vimdoc", "markdown", "markdown_inline", "rust", "latex" },
+      ensure_installed = ensure_installed,
       highlight = {
         enable = true,
       },
