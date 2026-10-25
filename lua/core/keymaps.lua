@@ -99,3 +99,12 @@ keymap.set("n", "<leader>gg", function()
     })
     vim.cmd("startinsert")
 end, { desc = "Abrir Lazygit em Tela Cheia" })
+
+-- Comandos Globais de Aparência (TTY e Classic Vim)
+vim.api.nvim_create_user_command("ToggleTTY", function()
+    require("ui.vim_look").toggle_tty()
+end, { desc = "Alternar modo TTY clássico com bordas ASCII" })
+
+vim.api.nvim_create_user_command("ToggleVimLook", function()
+    require("ui.vim_look").toggle()
+end, { desc = "Alternar entre visual Vim clássico e moderno" })

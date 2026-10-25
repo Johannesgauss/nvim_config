@@ -10,7 +10,7 @@ Welcome to the comprehensive documentation for this Neovim configuration. This d
 | :--- | :--- |
 | [Architecture & Lifecycle](file:///home/cloud/.config/nvim/docs/architecture.md) | High-level system design, bootstrap mechanism via `lazy.nvim`, initialization sequence, and directory topology. |
 | [Core Configuration](file:///home/cloud/.config/nvim/docs/core-configuration.md) | Editor options (indentation, tabs, splits, clipboard) and core global keybindings (terminals, window navigation, lazygit). |
-| [UI & Appearance](file:///home/cloud/.config/nvim/docs/ui-and-appearance.md) | Catppuccin Mocha theme, custom dynamic statusline, and the persistent `:ToggleVimLook` classic Vim appearance engine. |
+| [UI & Appearance](file:///home/cloud/.config/nvim/docs/ui-and-appearance.md) | Catppuccin Mocha theme, custom dynamic statusline, and the persistent `:ToggleVimLook` and `:ToggleTTY` appearance engines. |
 | [Plugins & Extensions](file:///home/cloud/.config/nvim/docs/plugins.md) | Detailed specifications and configuration for Telescope, Nvim-Tree (with NERDTree emulation), Diffview, Autopairs, and Treesitter. |
 | [LSP & Autocompletion](file:///home/cloud/.config/nvim/docs/lsp-and-completion.md) | Language Server Protocol (`mason`, `lspconfig`), configured language servers (`ts_ls`, `clangd`, `pyright`), diagnostics, and `nvim-cmp`. |
 | [AI Integrations](file:///home/cloud/.config/nvim/docs/ai-integrations.md) | AI assistant panels and completions: Google Antigravity CLI, Claude Code, GitHub Copilot (with privacy guard), and Ollama/Minuet. |

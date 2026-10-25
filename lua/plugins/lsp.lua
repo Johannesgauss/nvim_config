@@ -531,6 +531,7 @@ return {
       local cmp = require("cmp")
       local luasnip = require("luasnip")
 
+      local cmp_border = vim.g.tty_mode and { "+", "-", "+", "|", "+", "-", "+", "|" } or "rounded"
       cmp.setup({
         snippet = {
           expand = function(args)
@@ -572,8 +573,8 @@ return {
           { name = "path" }, -- file system paths
         }),
         window = {
-          completion = cmp.config.window.bordered(),
-          documentation = cmp.config.window.bordered(),
+          completion = cmp.config.window.bordered({ border = cmp_border }),
+          documentation = cmp.config.window.bordered({ border = cmp_border }),
         },
       })
     end

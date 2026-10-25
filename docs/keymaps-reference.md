@@ -162,7 +162,8 @@ This cheat sheet compiles all keybindings across the configuration, grouped by f
 | Command | Description |
 | :--- | :--- |
 | `:Telescope <builtin>` | Opens Telescope with any builtin picker (e.g. `live_grep`, `find_files`, `help_tags`). |
-| `:ToggleVimLook` | Toggles between classic Vim look (16 ANSI colors, `colorscheme vim`, `notermguicolors`, no signcolumn) and modern look (`catppuccin-mocha`, truecolor, statusline icons). Choice is persisted across restarts. |
+| `:ToggleVimLook` | Toggles between classic Vim look (16 ANSI colors, `colorscheme vim`, `notermguicolors`) and modern look (`catppuccin-mocha`, truecolor, statusline icons). Choice is persisted across restarts. |
+| `:ToggleTTY` | Toggles Linux console / TTY3 compatible mode (pure-ASCII borders, NERDTree ASCII icons in NvimTree, 16-color highlights, ASCII diagnostic signs). Choice is persisted across restarts. |
 | `:CopilotStart` | Validates directory safety whitelist and initializes GitHub Copilot and CopilotChat. |
 | `:DiffviewOpen` | Opens the Git diff split viewer. |
 | `:DiffviewClose` | Closes active Git diff viewer. |

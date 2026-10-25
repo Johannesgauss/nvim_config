@@ -94,38 +94,98 @@ return {
       vim.keymap.set("n", "?", api.tree.toggle_help, opts("Help"))
     end
 
-    require("nvim-tree").setup({
-      on_attach = my_on_attach,
-      sync_root_with_cwd = true,
-      respect_buf_cwd = true,
-      update_focused_file = {
-        enable = true,
-        update_root = true,
-      },
-      sort = {
-        sorter = "case_sensitive",
-      },
-      view = {
-        width = 30,             
-        side = "left",          
-        number = true,         -- CRITICAL FIX: Enables absolute line numbers (set number)
-        relativenumber = true, -- CRITICAL FIX: Enables relative vertical jump numbers (set relativenumber)
-      },
-      renderer = {
-        group_empty = true,     
-      },
-      git = {
-        enable = true,          
-        ignore = true,          
-        timeout = 500,
-      },
-      filters = {
-        dotfiles = false,       
-        git_ignored = true,     
-        custom = {              
-          "^\\.git$",          
+    local is_tree_initialized = false
+    local function setup_nvim_tree(is_tty)
+      local ok_api, api = pcall(require, "nvim-tree.api")
+      local was_visible = false
+      if is_tree_initialized and ok_api and api.tree and api.tree.is_visible then
+        local ok_vis, vis = pcall(api.tree.is_visible)
+        was_visible = ok_vis and vis or false
+        if was_visible then
+          pcall(api.tree.close)
+        end
+      end
+
+      local renderer_opts = {
+        group_empty = true,
+      }
+
+      if is_tty then
+        renderer_opts.icons = {
+          show = {
+            file = false,
+            folder = false,
+            folder_arrow = true,
+            git = true,
+            modified = true,
+          },
+          glyphs = {
+            default = "*",
+            symlink = "@",
+            bookmark = "*",
+            modified = "+",
+            folder = {
+              arrow_closed = ">",
+              arrow_open = "v",
+              default = "[D]",
+              open = "[O]",
+              empty = "[E]",
+              empty_open = "[O]",
+              symlink = "[@]",
+              symlink_open = "[@]",
+            },
+            git = {
+              unstaged = "M",
+              staged = "S",
+              unmerged = "U",
+              renamed = "R",
+              untracked = "?",
+              deleted = "D",
+              ignored = "!",
+            },
+          },
+        }
+      end
+
+      require("nvim-tree").setup({
+        on_attach = my_on_attach,
+        sync_root_with_cwd = true,
+        respect_buf_cwd = true,
+        update_focused_file = {
+          enable = true,
+          update_root = true,
         },
-      },
-    })
+        sort = {
+          sorter = "case_sensitive",
+        },
+        view = {
+          width = 30,             
+          side = "left",          
+          number = true,         -- CRITICAL FIX: Enables absolute line numbers (set number)
+          relativenumber = true, -- CRITICAL FIX: Enables relative vertical jump numbers (set relativenumber)
+        },
+        renderer = renderer_opts,
+        git = {
+          enable = true,          
+          ignore = true,          
+          timeout = 500,
+        },
+        filters = {
+          dotfiles = false,       
+          git_ignored = true,     
+          custom = {              
+            "^\\.git$",          
+          },
+        },
+      })
+      is_tree_initialized = true
+
+      if was_visible and ok_api and api.tree then
+        pcall(api.tree.open, { focus = false })
+      end
+    end
+
+    _G.Setup_NvimTree = setup_nvim_tree
+    setup_nvim_tree(vim.g.tty_mode == true)
   end,
 }

@@ -44,6 +44,15 @@ return {
   },
   config = function(_, opts)
     local telescope = require("telescope")
+    if vim.g.tty_mode then
+      opts.defaults = vim.tbl_deep_extend("force", opts.defaults or {}, {
+        color_devicons = false,
+        disable_devicons = true,
+        prompt_prefix = "> ",
+        selection_caret = "* ",
+        borderchars = { "-", "|", "-", "|", "+", "+", "+", "+" },
+      })
+    end
     telescope.setup(opts)
     pcall(telescope.load_extension, "fzf")
   end,

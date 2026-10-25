@@ -32,7 +32,7 @@ Full documentation is available in the [`docs/`](docs/README.md) directory:
 
 - [Architecture & Lifecycle](docs/architecture.md)
 - [Core Configuration & Options](docs/core-configuration.md)
-- [UI, Statusline & :ToggleVimLook](docs/ui-and-appearance.md)
+- [UI, Statusline, :ToggleVimLook & :ToggleTTY](docs/ui-and-appearance.md)
 - [Plugins (Tree, Diffview, Telescope, Autopairs, Treesitter)](docs/plugins.md)
 - [LSP & Autocompletion](docs/lsp-and-completion.md)
 - [AI Integrations (Antigravity, Claude, Copilot, Ollama)](docs/ai-integrations.md)
