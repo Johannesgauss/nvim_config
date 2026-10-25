@@ -316,8 +316,30 @@ return {
           init_params.initializationOptions = init_params.initializationOptions or {}
           local fallback_flags = init_params.initializationOptions.fallbackFlags or {}
 
-          -- Standard C flags for bare-metal/kernel code (enables 'restrict' in C & C++ header contexts)
-          table.insert(fallback_flags, "-ffreestanding")
+          -- Only enable -ffreestanding if the project Makefile/build system explicitly requires freestanding/bare-metal.
+          -- Never apply -ffreestanding globally, as it breaks hosted C++ standard headers (<iostream>, <vector>, etc.).
+          local is_freestanding = false
+          if config.root_dir then
+            for _, mk_name in ipairs({ "GNUmakefile", "Makefile", "makefile" }) do
+              local mk_path = vim.fs.joinpath(config.root_dir, mk_name)
+              if vim.fn.filereadable(mk_path) == 1 then
+                local lines = vim.fn.readfile(mk_path, "", 250)
+                for _, line in ipairs(lines) do
+                  if line:find("-ffreestanding") or line:find("-nostdinc") then
+                    is_freestanding = true
+                    break
+                  end
+                end
+              end
+              if is_freestanding then break end
+            end
+          end
+
+          if is_freestanding then
+            table.insert(fallback_flags, "-ffreestanding")
+          end
+
+          -- Enables standard 'restrict' keyword support in both C and C++ header contexts
           table.insert(fallback_flags, "-Drestrict=__restrict")
 
           for _, d in ipairs(include_dirs) do
