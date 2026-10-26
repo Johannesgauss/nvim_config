@@ -5,7 +5,7 @@ This cheat sheet compiles all keybindings across the configuration, grouped by f
 > **Leader Key**: `<leader>` is mapped to `<Space>`.
 >
 > [!TIP]
-> **Centralized Shortcuts File**: All shortcuts across the entire editor are defined in a single, clean configuration file: [`lua/config/shortcuts.lua`](file:///home/cloud/.config/nvim/lua/config/shortcuts.lua). You can inspect, modify, or add any shortcut directly in that file without touching plugin configurations.
+> **Centralized Shortcuts File (`shortcuts.conf`)**: All shortcuts across the entire editor are defined in a simple Linux-style configuration file: [`shortcuts.conf`](file:///home/cloud/.config/nvim/shortcuts.conf) (e.g. `key = action # description`). You can inspect, modify, or add any shortcut directly in that file without writing any Lua or JSON.
 
 ---
 

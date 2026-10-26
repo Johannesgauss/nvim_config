@@ -26,6 +26,7 @@ The configuration follows standard Neovim Lua conventions rooted at `~/.config/n
 ~/.config/nvim/
 ├── init.lua                      # Root entry point & lazy bootstrap
 ├── lazy-lock.json                # Plugin version pin lockfile
+├── shortcuts.conf                # Linux-style central shortcuts configuration
 ├── README.md                     # Root summary
 ├── docs/                         # Full documentation suite
 │   ├── README.md                 # Documentation index (this file)

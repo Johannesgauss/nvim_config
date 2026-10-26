@@ -166,30 +166,88 @@ vim.api.nvim_create_user_command("ToggleMarkdownView", function()
 end, { desc = "Alternar Modo Leitor de Markdown (Distraction-Free)" })
 
 -- ============================================================================
--- Load & Register Central Shortcuts (lua/config/shortcuts.lua)
+-- Linux-Style Configuration Loader (shortcuts.conf)
 -- ============================================================================
-local ok_shortcuts, shortcuts = pcall(require, "config.shortcuts")
-if ok_shortcuts and type(shortcuts) == "table" then
-    for _, item in ipairs(shortcuts) do
-        local key = item[1] or item.key
-        local target = item[2] or item.action
-        local mode = item.mode or "n"
-        local desc = item.desc or ""
+local function load_shortcuts_conf()
+    local conf_path = vim.fs.joinpath(vim.fn.stdpath("config"), "shortcuts.conf")
+    if vim.fn.filereadable(conf_path) ~= 1 then
+        return false
+    end
 
-        if key and target then
-            local handler
-            if type(target) == "function" then
-                handler = target
-            elseif type(target) == "string" and actions[target] then
-                handler = actions[target]
+    local lines = vim.fn.readfile(conf_path)
+    local current_mode = "n"
+
+    for _, raw_line in ipairs(lines) do
+        local line = vim.trim(raw_line)
+        -- Skip empty lines and full comment lines (# or //)
+        if line ~= "" and not line:match("^#") and not line:match("^//") then
+            -- Section header: [i], [t], [v], [n], or [n,v]
+            local sec = line:match("^%[([%a,]+)%]$")
+            if sec then
+                current_mode = sec
             else
-                handler = target
-            end
+                -- Format: [mode] key = action # desc   OR   key = action # desc
+                local inline_mode, key, action = line:match("^%[([%a,]+)%]%s*([^=]+)%s*=%s*(.+)$")
+                if not key then
+                    key, action = line:match("^([^=]+)%s*=%s*(.+)$")
+                end
 
-            keymap.set(mode, key, handler, {
-                desc = desc,
-                silent = true,
-            })
+                if key and action then
+                    key = vim.trim(key)
+                    action = vim.trim(action)
+                    local desc = ""
+
+                    -- Parse optional inline comment: action # description
+                    if action:find("#") then
+                        local parts = vim.split(action, "#")
+                        action = vim.trim(parts[1])
+                        desc = vim.trim(parts[2] or "")
+                    end
+
+                    local mode_str = inline_mode or current_mode
+                    local modes = {}
+                    for m in mode_str:gmatch("%a") do
+                        table.insert(modes, m)
+                    end
+                    if #modes == 0 then modes = { "n" } end
+
+                    local handler
+                    if actions[action] then
+                        handler = actions[action]
+                    else
+                        handler = action
+                    end
+
+                    for _, m in ipairs(modes) do
+                        keymap.set(m, key, handler, {
+                            desc = desc ~= "" and desc or nil,
+                            silent = true,
+                        })
+                    end
+                end
+            end
+        end
+    end
+    return true
+end
+
+-- Try loading Linux-style shortcuts.conf first; fallback to lua/config/shortcuts.lua if absent
+if not load_shortcuts_conf() then
+    local ok_shortcuts, shortcuts = pcall(require, "config.shortcuts")
+    if ok_shortcuts and type(shortcuts) == "table" then
+        for _, item in ipairs(shortcuts) do
+            local key = item[1] or item.key
+            local target = item[2] or item.action
+            local mode = item.mode or "n"
+            local desc = item.desc or ""
+
+            if key and target then
+                local handler = (type(target) == "string" and actions[target]) or target
+                keymap.set(mode, key, handler, {
+                    desc = desc,
+                    silent = true,
+                })
+            end
         end
     end
 end

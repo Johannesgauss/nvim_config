@@ -7,9 +7,9 @@ A modular Neovim setup using [lazy.nvim](https://github.com/folke/lazy.nvim) for
 ```text
 ~/.config/nvim
 ├── init.lua             # Entry point & lazy.nvim bootstrap
+├── shortcuts.conf       # Linux-style central shortcuts config (key = action)
 ├── lua/
-│   ├── config/         # Central shortcuts configuration (shortcuts.lua)
-│   ├── core/           # Core configuration (options & keymap loader)
+│   ├── core/           # Core configuration (options & shortcuts parser)
 │   ├── plugins/        # Plugin specifications & configurations (LSP, treesitter, etc.)
 │   ├── ui/             # Custom UI elements (statusline)
 │   └── ai/             # AI assistant and completion integrations
