@@ -38,6 +38,8 @@ The configuration follows standard Neovim Lua conventions rooted at `~/.config/n
 │   └── keymaps-reference.md      # Master keymap cheat sheet
 └── lua/
     ├── init.lua (optional)
+    ├── config/
+    │   └── shortcuts.lua         # Centralized shortcuts configuration file
     ├── core/
     │   ├── options.lua           # Global vim options (tabs, numbers, etc.)
     │   ├── keymaps.lua           # Core navigation & terminal keymaps

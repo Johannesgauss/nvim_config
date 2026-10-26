@@ -1,14 +1,8 @@
 local keymap = vim.keymap
 
--- Modo de Inserção: Atalho rápido 'jk' para voltar ao modo Normal
-keymap.set("i", "jk", "<Esc>", { desc = "Sair do modo de inserção" })
-
--- Modo de Terminal: Atalhos de fuga rápidos
-keymap.set("t", "jk", [[<C-\><C-n>]], { desc = "Sair do modo terminal" })
-keymap.set("t", "<C-h>", [[<C-\><C-n><C-w>h]], { desc = "Sair do terminal para a esquerda" })
-keymap.set("t", "<C-l>", [[<C-\><C-n><C-w>l]], { desc = "Sair do terminal para a direita" })
-keymap.set("t", "<C-k>", [[<C-\><C-n><C-w>k]], { desc = "Sair do terminal para cima" })
-
+-- ============================================================================
+-- Terminal Toggle Manager
+-- ============================================================================
 local term_buf = nil
 local term_win = nil
 
@@ -55,52 +49,110 @@ local function toggle_terminal()
     end
 end
 
-keymap.set("n", "<C-j>", toggle_terminal, { desc = "Alternar terminal" })
-keymap.set("t", "<C-j>", toggle_terminal, { desc = "Alternar terminal" })
-
-keymap.set("n", "<leader>n", ":NvimTreeToggle<CR>", { desc = "Toggle file tree" })
--- Modo Normal: Navegação entre janelas splits
-keymap.set("n", "<C-h>", "<C-w>h", { desc = "Mover para a janela da esquerda" })
-keymap.set("n", "<C-l>", "<C-w>l", { desc = "Mover para a janela da direita" })
-
--- Modo Normal: Exibir mensagem de erro/diagnóstico em uma janela flutuante
-keymap.set("n", "ge", function()
-    vim.diagnostic.open_float(nil, { focusable = true, border = "rounded", source = "always" })
-end, { desc = "Exibir mensagem de erro/diagnóstico" })
-
--- Modo Normal: Exibir documentação da função sob o cursor (LSP ou Ajuda do Vim)
-keymap.set("n", "<C-k>", function()
-    local bufnr = vim.api.nvim_get_current_buf()
-    local clients = vim.lsp.get_clients({ bufnr = bufnr, method = "textDocument/hover" })
-    if #clients > 0 then
-        vim.lsp.buf.hover()
-    else
-        local cword = vim.fn.expand("<cword>")
-        if cword and cword ~= "" then
-            local ok = pcall(vim.cmd.help, cword)
-            if not ok then
-                vim.cmd("normal! K")
-            end
-        end
-    end
-end, { desc = "Exibir documentação / ajuda" })
-
--- Integração do Lazygit em uma aba limpa e dedicada
-keymap.set("n", "<leader>gg", function()
+-- ============================================================================
+-- Lazygit Integration
+-- ============================================================================
+local function open_lazygit()
     vim.cmd("tabnew")
     vim.cmd("terminal lazygit")
     vim.opt_local.number = false
     vim.opt_local.relativenumber = false
-    
+
     vim.api.nvim_create_autocmd("TermClose", {
         buffer = vim.api.nvim_get_current_buf(),
         once = true,
         callback = function() vim.cmd("tabclose") end,
     })
     vim.cmd("startinsert")
-end, { desc = "Abrir Lazygit em Tela Cheia" })
+end
 
--- Comandos Globais de Aparência (TTY e Classic Vim)
+-- ============================================================================
+-- Named Action Dispatcher
+-- ============================================================================
+local actions = {
+    -- Terminal & Lazygit
+    ["terminal:toggle"] = toggle_terminal,
+    ["lazygit:open"] = open_lazygit,
+
+    -- Markdown & LaTeX Viewing
+    ["markdown:toggle_view"] = function()
+        require("ui.markdown_view").toggle()
+    end,
+    ["markdown:toggle_render"] = function()
+        local ok, rm = pcall(require, "render-markdown")
+        if ok and rm.toggle then
+            rm.toggle()
+        else
+            vim.cmd("RenderMarkdown toggle")
+        end
+    end,
+    ["latex:popup"] = function()
+        local ok, _ = pcall(vim.cmd, "NablaPopup")
+        if not ok then
+            pcall(function() require("nabla").popup({ border = "rounded" }) end)
+        end
+    end,
+    ["latex:toggle_virt"] = function()
+        local ok, _ = pcall(vim.cmd, "NablaToggle")
+        if not ok then
+            pcall(function() require("nabla").toggle_virt() end)
+        end
+    end,
+
+    -- LSP Diagnostics & Documentation
+    ["lsp:diagnostic_float"] = function()
+        vim.diagnostic.open_float(nil, { focusable = true, border = "rounded", source = "always" })
+    end,
+    ["lsp:hover_doc"] = function()
+        local bufnr = vim.api.nvim_get_current_buf()
+        local clients = vim.lsp.get_clients({ bufnr = bufnr, method = "textDocument/hover" })
+        if #clients > 0 then
+            vim.lsp.buf.hover()
+        else
+            local cword = vim.fn.expand("<cword>")
+            if cword and cword ~= "" then
+                local ok = pcall(vim.cmd.help, cword)
+                if not ok then
+                    vim.cmd("normal! K")
+                end
+            end
+        end
+    end,
+
+    -- AI Integrations
+    ["ai:antigravity_toggle"] = function()
+        local ok, agy = pcall(require, "ai.antigravity")
+        if ok and agy.toggle then agy.toggle() end
+    end,
+    ["ai:antigravity_diffview"] = function()
+        local ok, agy = pcall(require, "ai.antigravity")
+        if ok and agy.toggle_diffview then agy.toggle_diffview() end
+    end,
+    ["ai:claude_toggle"] = function()
+        local ok, cc = pcall(require, "ai.claudecode")
+        if ok and cc.toggle then cc.toggle() end
+    end,
+    ["ai:copilot_chat"] = function()
+        local ok, cp = pcall(require, "ai.copilot")
+        if ok and cp.toggle_chat then cp.toggle_chat() end
+    end,
+    ["ai:copilot_reset"] = function()
+        local ok, cp = pcall(require, "ai.copilot")
+        if ok and cp.reset_chat then cp.reset_chat() end
+    end,
+    ["ai:ollama_complete"] = function()
+        local ok, ol = pcall(require, "ai.ollama")
+        if ok and ol.complete then ol.complete() end
+    end,
+    ["ai:ollama_model_swap"] = function()
+        local ok, ol = pcall(require, "ai.ollama")
+        if ok and ol.swap_model then ol.swap_model() end
+    end,
+}
+
+-- ============================================================================
+-- Global User Commands
+-- ============================================================================
 vim.api.nvim_create_user_command("ToggleTTY", function()
     require("ui.vim_look").toggle_tty()
 end, { desc = "Alternar modo TTY clássico com bordas ASCII" })
@@ -109,20 +161,35 @@ vim.api.nvim_create_user_command("ToggleVimLook", function()
     require("ui.vim_look").toggle()
 end, { desc = "Alternar entre visual Vim clássico e moderno" })
 
--- Visualização e Modo Leitor de Markdown
-keymap.set("n", "<leader>mv", function()
-    require("ui.markdown_view").toggle()
-end, { desc = "Alternar Modo Leitor de Markdown (Distraction-Free)" })
-
-keymap.set("n", "<leader>mr", function()
-    local ok, rm = pcall(require, "render-markdown")
-    if ok and rm.toggle then
-        rm.toggle()
-    else
-        vim.cmd("RenderMarkdown toggle")
-    end
-end, { desc = "Alternar renderização inline de Markdown" })
-
 vim.api.nvim_create_user_command("ToggleMarkdownView", function()
     require("ui.markdown_view").toggle()
 end, { desc = "Alternar Modo Leitor de Markdown (Distraction-Free)" })
+
+-- ============================================================================
+-- Load & Register Central Shortcuts (lua/config/shortcuts.lua)
+-- ============================================================================
+local ok_shortcuts, shortcuts = pcall(require, "config.shortcuts")
+if ok_shortcuts and type(shortcuts) == "table" then
+    for _, item in ipairs(shortcuts) do
+        local key = item[1] or item.key
+        local target = item[2] or item.action
+        local mode = item.mode or "n"
+        local desc = item.desc or ""
+
+        if key and target then
+            local handler
+            if type(target) == "function" then
+                handler = target
+            elseif type(target) == "string" and actions[target] then
+                handler = actions[target]
+            else
+                handler = target
+            end
+
+            keymap.set(mode, key, handler, {
+                desc = desc,
+                silent = true,
+            })
+        end
+    end
+end
