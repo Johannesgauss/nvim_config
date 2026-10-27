@@ -4,7 +4,20 @@ This configuration features modular integrations for modern coding assistants an
 
 ---
 
-## 1. Modular Aggregator (`lua/ai/init.lua`)
+## 1. Workflow Architecture: Vibecoding vs Hand-Written Code
+
+The editor's AI architecture is intentionally designed around two distinct operating modes:
+1. **Full Vibecoding (Autonomous CLI Agents)**: Delegating extensive features, tests, or refactors to agent CLIs running in Neovim terminal splits (such as Google Antigravity `agy` via `<leader>ai`). The agent operates autonomously while you review diffs via Diffview (`<leader>ad` / `<leader>gd`) and commit via Lazygit (`<leader>gg`).
+2. **Full Hand-Written Code (Zero Distraction)**: Writing low-level systems and kernel code manually without intrusive inline ghost-text or AI autocomplete popups competing with native LSP completions and compiler diagnostics (`clangd`).
+
+To maintain this balance:
+- Inline completion providers (Copilot and Ollama) are lazy-loaded and disabled by default.
+- Agent terminals are decoupled from editor windows, allowing instant toggling without disturbing active buffers or splits.
+- All AI keymaps are centralized in [`shortcuts.conf`](file:///home/cloud/.config/nvim/shortcuts.conf) using named action dispatchers (`ai:antigravity_toggle`, `ai:antigravity_diffview`, etc.).
+
+---
+
+## 2. Modular Aggregator (`lua/ai/init.lua`)
 
 The entry module [`lua/ai/init.lua`](file:///home/cloud/.config/nvim/lua/ai/init.lua) collects plugin specifications from individual AI provider files and injects them directly into the root `lazy.nvim` setup call:
 
@@ -23,9 +36,16 @@ To enable alternative AI assistants (Claude Code, Copilot, Ollama), uncomment th
 
 ---
 
-## 2. Google Antigravity CLI Integration (`lua/ai/antigravity.lua`)
+## 3. Google Antigravity CLI Integration (`lua/ai/antigravity.lua`)
 
 The Antigravity integration ([`lua/ai/antigravity.lua`](file:///home/cloud/.config/nvim/lua/ai/antigravity.lua)) embeds the autonomous agent CLI (`agy`) directly into an interactive Neovim side-panel.
+
+### Architecture & `shortcuts.conf` Dispatcher
+Functions are exported directly on the module table (`M.toggle()`, `M.toggle_diffview()`, `M.resize(target_percent)`). In [`lua/core/keymaps.lua`](file:///home/cloud/.config/nvim/lua/core/keymaps.lua), they are registered as named actions:
+- `ai:antigravity_toggle` -> invokes `require("ai.antigravity").toggle()`
+- `ai:antigravity_diffview` -> invokes `require("ai.antigravity").toggle_diffview()`
+
+This allows seamless rebinding inside [`shortcuts.conf`](file:///home/cloud/.config/nvim/shortcuts.conf) without modifying Lua source code.
 
 ### Keymaps & Features
 | Keymap | Mode | Description |
@@ -40,21 +60,24 @@ The Antigravity integration ([`lua/ai/antigravity.lua`](file:///home/cloud/.conf
 
 ---
 
-## 3. Claude Code Integration (`lua/ai/claudecode.lua`)
+## 4. Claude Code Integration (`lua/ai/claudecode.lua`)
 
 Configured in [`lua/ai/claudecode.lua`](file:///home/cloud/.config/nvim/lua/ai/claudecode.lua), this module provides a vertical split panel for Anthropic's Claude Code terminal interface (`claude`).
+
+> [!NOTE]
+> This module is optional. If the `claude` CLI is not installed on the system, Antigravity (`agy`) serves as the primary terminal agent.
 
 ### Keymaps
 | Keymap | Mode | Description |
 | :--- | :---: | :--- |
-| `<leader>ci` | Normal | **Toggle Claude Code Panel**: Spawns or toggles a vertical split terminal executing `claude`. |
+| `<leader>ci` | Normal | **Toggle Claude Code Panel**: Spawns or toggles a vertical split terminal executing `claude` (mapped via `ai:claude_toggle`). |
 | `<leader>cs` | Normal / Term | **Resize Small (25%)**: Sets Claude Code panel width to 25%. |
 | `<leader>ce` | Normal / Term | **Resize Medium (65%)**: Sets Claude Code panel width to 65%. |
 | `<leader>ct` | Normal / Term | **Resize Full (100%)**: Expands the panel across the entire editor width. |
 
 ---
 
-## 4. GitHub Copilot & Privacy Guard (`lua/ai/copilot.lua`)
+## 5. GitHub Copilot & Privacy Guard (`lua/ai/copilot.lua`)
 
 The GitHub Copilot integration ([`lua/ai/copilot.lua`](file:///home/cloud/.config/nvim/lua/ai/copilot.lua)) pairs [copilot.lua](https://github.com/zbirenbaum/copilot.lua) with [CopilotChat.nvim](https://github.com/CopilotC-Nvim/CopilotChat.nvim).
 
@@ -83,7 +106,7 @@ When `:CopilotStart` is executed:
 
 ---
 
-## 5. Local LLM Autocompletion & Ollama (`lua/ai/ollama.lua`)
+## 6. Local LLM Autocompletion & Ollama (`lua/ai/ollama.lua`)
 
 Local, fully offline code completions are powered by [minuet-ai.nvim](https://github.com/milanglacier/minuet-ai.nvim) connecting to an Ollama server running locally at `http://127.0.0.1:11434`.
 
