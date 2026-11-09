@@ -133,7 +133,7 @@ This cheat sheet compiles all keybindings across the configuration, grouped by f
 
 ---
 
-## 9. Markdown & LaTeX Viewing
+## 9. Markdown & LaTeX Authoring
 
 | Mode | Shortcut | Description |
 | :---: | :--- | :--- |
@@ -142,10 +142,23 @@ This cheat sheet compiles all keybindings across the configuration, grouped by f
 | **Normal** | `<leader>mr` | Toggle inline rich visual Markdown rendering (`render-markdown.nvim`). |
 | **Normal** | `<leader>lp` / `<leader>mp` | Preview 2D LaTeX formula under cursor in a floating popup window (`nabla.nvim`). |
 | **Normal** | `<leader>lv` | Toggle 2D LaTeX formulas rendered directly in buffer virtual lines (`nabla.nvim`). |
+| **Normal** | `\ll` (`<localleader>ll`) | Toggle continuous `latexmk` compilation and live preview in Zathura (`vimtex`). |
+| **Normal** | `\lv` (`<localleader>lv`) | Perform SyncTeX forward search from cursor to Zathura (`vimtex`). |
+| **Normal** | `\lk` (`<localleader>lk`) | Stop running LaTeX compiler process (`vimtex`). |
+| **Normal** | `\le` (`<localleader>le`) | Open compilation errors / quickfix window (`vimtex`). |
+| **Click** | `Ctrl + Click` *(Zathura)* | Inverse SyncTeX search from PDF back to editor cursor. |
 
 ---
 
-## 10. AI Assistants & Autocomplete
+## 10. Debugging (GDB)
+
+| Mode | Shortcut | Description |
+| :---: | :--- | :--- |
+| **Normal** | `<leader>db` | Automatically compile active C, C++, or Rust file with `-g -O0` and launch GDB in terminal split. |
+
+---
+
+## 11. AI Assistants & Autocomplete
 
 ### Google Antigravity
 | Mode | Shortcut | Description |
@@ -172,7 +185,7 @@ This cheat sheet compiles all keybindings across the configuration, grouped by f
 
 ---
 
-## 11. Custom User Commands
+## 12. Custom User Commands
 
 | Command | Description |
 | :--- | :--- |
@@ -180,6 +193,9 @@ This cheat sheet compiles all keybindings across the configuration, grouped by f
 | `:RenderMarkdown <cmd>` | Controls in-buffer Markdown visual rendering (`toggle`, `enable`, `disable`). |
 | `:NablaPopup` | Displays a 2D rendered LaTeX popup of the formula at the cursor (`<leader>lp`). |
 | `:NablaToggle` | Toggles 2D LaTeX formulas rendered in buffer virtual lines (`<leader>lv`). |
+| `:VimtexCompile` | Toggles continuous background LaTeX compilation with latexmk (`\ll`). |
+| `:VimtexView` | Opens or jumps to the compiled PDF in Zathura (`\lv`). |
+| `:VimtexStop` | Stops the running LaTeX compilation process (`\lk`). |
 | `:Telescope <builtin>` | Opens Telescope with any builtin picker (e.g. `live_grep`, `find_files`, `help_tags`). |
 | `:ToggleVimLook` | Toggles between classic Vim look (16 ANSI colors, `colorscheme vim`, `notermguicolors`) and modern look (`catppuccin-mocha`, truecolor, statusline icons). Choice is persisted across restarts. |
 | `:ToggleTTY` | Toggles Linux console / TTY3 compatible mode (pure-ASCII borders, NERDTree ASCII icons in NvimTree, 16-color highlights, ASCII diagnostic signs). Choice is persisted across restarts. |

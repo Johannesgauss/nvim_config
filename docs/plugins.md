@@ -133,6 +133,7 @@ Inline rich visual rendering of Markdown documentation is powered by [render-mar
 - **Checkboxes & Lists**: Rendered interactive bullet glyphs (`●`, `○`, `◆`) and check indicators (`[ ]`, `[x]`).
 - **Callout Quotes**: GitHub Flavored Markdown alerts (`[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`) with styled alert icons and themed color highlights.
 - **TTY Compatibility**: When `:ToggleTTY` is active, borders and bullet icons automatically switch to pure ASCII (`+`, `-`, `|`, `*`).
+- **Math Formula Isolation**: Internal `latex` rendering is delegated cleanly to `nabla.nvim` to prevent duplicate virtual line collisions and enable accurate 2D mathematical notation.
 
 ### Shortcuts
 | Keymap | Command | Description |
@@ -146,18 +147,25 @@ Inline rich visual rendering of Markdown documentation is powered by [render-mar
 LaTeX math formula rendering and full document authoring are powered by [nabla.nvim](https://github.com/jbyuki/nabla.nvim) and [vimtex](https://github.com/lervag/vimtex).
 
 ### In-Buffer 2D Math Rendering (`nabla.nvim`)
-Renders mathematical notation (fractions, integrals, matrices, summations, square roots, Greek letters) directly inside Neovim with zero external binaries needed:
+Renders mathematical notation (fractions, integrals, matrices, summations, square roots, cases environments, Greek letters) directly inside Neovim with zero external binaries needed:
 - Works seamlessly in Markdown files (`$...$` and `$$...$$`) and `.tex` files.
 - Visualizes 2D equations in floating preview windows or virtual lines within the buffer.
+- Tree-sitter powered zone extraction accurately detects multiline formulas and LaTeX environments.
+- Full support for `\begin{cases}` environments with multi-line Unicode brackets (`⎧`, `⎨`, `⎩`) and aligned columns.
 
 ### Full Document Authoring (`vimtex`)
 - **Concealment**: Automatically conceals raw LaTeX math commands into Unicode symbols (`\alpha` $\to$ `α`, `\sum` $\to$ `∑`) with `conceallevel = 2`.
-- **Compilation**: Compatible with `latexmk` and background compiler daemons.
-- **Preview**: Interacts with external PDF viewers (Zathura, MuPDF, Okular) with forward and backward Synctex search.
+- **Compilation**: Continuous background compilation with `latexmk`.
+- **Preview**: Integrated with [Zathura](https://pwmt.org/projects/zathura/) (`vim.g.vimtex_view_method = "zathura"`) with bidirectional SyncTeX search.
 
 ### Shortcuts
 | Keymap | Command | Description |
 | :--- | :--- | :--- |
 | `<leader>lp` / `<leader>mp` | `:NablaPopup` | Previews 2D LaTeX formula under cursor in a floating window. |
 | `<leader>lv` | `:NablaToggle` | Toggles 2D LaTeX formulas rendered as virtual lines above/below equations. |
+| `\ll` (`<localleader>ll`) | `:VimtexCompile` | Toggles continuous background compilation (`latexmk`) and opens live preview in Zathura. |
+| `\lv` (`<localleader>lv`) | `:VimtexView` | Performs SyncTeX forward search (cursor position $\to$ PDF location in Zathura). |
+| `\lk` (`<localleader>lk`) | `:VimtexStop` | Stops the running `latexmk` compiler process. |
+| `\le` (`<localleader>le`) | `:VimtexErrors` | Opens compilation log and quickfix error window. |
+| `Ctrl + Click` | (Zathura) | Inverse SyncTeX search from PDF back to exact line in Neovim. |
 

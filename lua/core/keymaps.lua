@@ -119,6 +119,71 @@ local actions = {
         end
     end,
 
+    -- Plain CLI GDB (Auto-Compile & Debug Current File)
+    ["gdb:debug"] = function()
+        local bufnr = vim.api.nvim_get_current_buf()
+        local filepath = vim.api.nvim_buf_get_name(bufnr)
+        if filepath == "" then
+            vim.notify("Buffer has no file name", vim.log.levels.ERROR)
+            return
+        end
+
+        vim.cmd("silent! update")
+
+        local ft = vim.bo[bufnr].filetype
+        local file_dir = vim.fn.fnamemodify(filepath, ":p:h")
+        local stem = vim.fn.fnamemodify(filepath, ":t:r")
+        local out_bin = "/tmp/gdb_" .. stem
+        local cmd = nil
+
+        if ft == "cpp" then
+            local cxx = vim.fn.executable("g++") == 1 and "g++" or "clang++"
+            cmd = { cxx, "-g", "-O0", "-std=c++20", "-DLOCAL", "-Wall", filepath, "-o", out_bin }
+        elseif ft == "c" then
+            local cc = vim.fn.executable("gcc") == 1 and "gcc" or "clang"
+            cmd = { cc, "-g", "-O0", "-DLOCAL", "-Wall", filepath, "-o", out_bin, "-lm" }
+        elseif ft == "rust" then
+            local cargo_dir = vim.fs.root(filepath, { "Cargo.toml" })
+            if cargo_dir then
+                local build = vim.system({ "cargo", "build" }, { cwd = cargo_dir, text = true }):wait()
+                if build.code ~= 0 then
+                    vim.notify("Cargo build failed:\n" .. (build.stderr or build.stdout or ""), vim.log.levels.ERROR)
+                    return
+                end
+                local pkg_name = vim.fn.fnamemodify(cargo_dir, ":t")
+                local cargo_bin = vim.fs.joinpath(cargo_dir, "target", "debug", pkg_name)
+                if vim.fn.executable(cargo_bin) == 1 then
+                    out_bin = cargo_bin
+                    file_dir = cargo_dir
+                else
+                    cmd = { "rustc", "-g", filepath, "-o", out_bin }
+                end
+            else
+                cmd = { "rustc", "-g", filepath, "-o", out_bin }
+            end
+        else
+            vim.notify("Unsupported filetype for GDB auto-compile: " .. tostring(ft), vim.log.levels.WARN)
+            return
+        end
+
+        if cmd then
+            local res = vim.system(cmd, { cwd = file_dir, text = true }):wait()
+            if res.code ~= 0 then
+                vim.notify("Compilation failed:\n" .. (res.stderr or res.stdout or ""), vim.log.levels.ERROR)
+                return
+            end
+        end
+
+        local main_win = get_main_win()
+        vim.api.nvim_set_current_win(main_win)
+        local height = math.floor(vim.o.lines * 0.35)
+        vim.cmd("belowright " .. height .. "split | enew")
+        local gdb_win = vim.api.nvim_get_current_win()
+        vim.wo[gdb_win].winfixheight = true
+        vim.fn.termopen({ "gdb", "-q", "-ex", "set print pretty on", out_bin }, { cwd = file_dir })
+        vim.cmd("startinsert")
+    end,
+
     -- AI Integrations
     ["ai:antigravity_toggle"] = function()
         local ok, agy = pcall(require, "ai.antigravity")

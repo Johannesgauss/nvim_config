@@ -35,9 +35,7 @@ return {
       },
     },
     latex = {
-      enabled = true,
-      converter = { "utftex", "latex2text" },
-      position = "below",
+      enabled = false,
     },
     pipe_table = {
       enabled = true,

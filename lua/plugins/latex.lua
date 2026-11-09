@@ -1,15 +1,40 @@
 local function get_math_at_cursor()
   local cursor = vim.api.nvim_win_get_cursor(0)
   local cur_row, cur_col = cursor[1] - 1, cursor[2]
+
+  -- 1. Try Treesitter mathzones (accurate for single & multiline math in Markdown & TeX)
+  local ok_utils, utils = pcall(require, "nabla.utils")
+  if ok_utils and utils.get_all_mathzones then
+    local zones = utils.get_all_mathzones()
+    for _, node in ipairs(zones) do
+      local srow, scol, erow, ecol = vim.treesitter.get_node_range(node)
+      if (cur_row > srow or (cur_row == srow and cur_col >= scol)) and
+         (cur_row < erow or (cur_row == erow and cur_col <= ecol)) then
+        local texts = vim.api.nvim_buf_get_text(0, srow, scol, erow, ecol, {})
+        local line = table.concat(texts, " ")
+        line = line:gsub("[%s]", " ")
+        line = line:gsub("[%$]", "")
+        line = line:gsub("\\%[", "")
+        line = line:gsub("\\%]", "")
+        line = line:gsub("^\\%(", "")
+        line = line:gsub("\\%)$", "")
+        line = vim.trim(line)
+        if line ~= "" then
+          return line
+        end
+      end
+    end
+  end
+
   local cur_line = vim.api.nvim_get_current_line()
 
-  -- 1. Check for single-line $$ ... $$
+  -- 2. Check for single-line $$ ... $$
   local s1, e1, inner1 = cur_line:find("%$%$([^%$]+)%$%$")
   if s1 and cur_col >= (s1 - 1) and cur_col <= e1 then
     return inner1
   end
 
-  -- 2. Check for inline $ ... $
+  -- 3. Check for inline $ ... $
   local pos = 1
   while true do
     local s, e, inner = cur_line:find("%$([^%$]+)%$", pos)
@@ -20,32 +45,8 @@ local function get_math_at_cursor()
     pos = e + 1
   end
 
-  -- 3. Check for multi-line $$ ... $$ block
-  local total_lines = vim.api.nvim_buf_line_count(0)
-  local start_row, end_row
-  for r = cur_row, 0, -1 do
-    local l = vim.api.nvim_buf_get_lines(0, r, r + 1, false)[1] or ""
-    if l:find("^%s*%$%$") then
-      start_row = r
-      break
-    end
-  end
-  if start_row then
-    for r = cur_row, total_lines - 1 do
-      local l = vim.api.nvim_buf_get_lines(0, r, r + 1, false)[1] or ""
-      if r ~= start_row and l:find("^%s*%$%$") then
-        end_row = r
-        break
-      end
-    end
-  end
-  if start_row and end_row then
-    local block_lines = vim.api.nvim_buf_get_lines(0, start_row, end_row + 1, false)
-    local joined = table.concat(block_lines, " ")
-    return joined:gsub("^%s*%$%$", ""):gsub("%$%$%s*$", "")
-  end
-
   -- 4. Check LaTeX environments: \begin{...} ... \end{...}
+  local total_lines = vim.api.nvim_buf_line_count(0)
   local env_start, env_end
   for r = cur_row, 0, -1 do
     local l = vim.api.nvim_buf_get_lines(0, r, r + 1, false)[1] or ""
@@ -65,10 +66,37 @@ local function get_math_at_cursor()
   end
   if env_start and env_end then
     local block_lines = vim.api.nvim_buf_get_lines(0, env_start, env_end + 1, false)
-    return table.concat(block_lines, " ")
+    local joined = table.concat(block_lines, " ")
+    joined = joined:gsub("[%$]", "")
+    return vim.trim(joined)
   end
 
-  -- 5. Fallback: if current line contains math commands
+  -- 5. Check for multi-line $$ ... $$ block
+  local start_row, end_row
+  for r = cur_row, 0, -1 do
+    local l = vim.api.nvim_buf_get_lines(0, r, r + 1, false)[1] or ""
+    if l:find("%$%$") then
+      start_row = r
+      break
+    end
+  end
+  if start_row then
+    for r = cur_row, total_lines - 1 do
+      local l = vim.api.nvim_buf_get_lines(0, r, r + 1, false)[1] or ""
+      if r ~= start_row and l:find("%$%$") then
+        end_row = r
+        break
+      end
+    end
+  end
+  if start_row and end_row then
+    local block_lines = vim.api.nvim_buf_get_lines(0, start_row, end_row + 1, false)
+    local joined = table.concat(block_lines, " ")
+    joined = joined:gsub("[%$]", "")
+    return vim.trim(joined)
+  end
+
+  -- 6. Fallback: if current line contains math commands
   if cur_line:find("\\[a-zA-Z]+") or cur_line:find("[%^%_%{%}]") then
     return cur_line:gsub("^%s*%$*", ""):gsub("%$*%s*$", "")
   end
@@ -182,7 +210,7 @@ return {
     ft = { "tex", "plaintex", "bib" },
     init = function()
       vim.g.tex_flavor = "latex"
-      vim.g.vimtex_view_method = "general"
+      vim.g.vimtex_view_method = "zathura"
       vim.g.vimtex_quickfix_mode = 0
       vim.g.tex_conceal = "abdmg"
 
