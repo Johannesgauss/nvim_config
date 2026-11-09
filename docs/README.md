@@ -25,6 +25,8 @@ The configuration follows standard Neovim Lua conventions rooted at `~/.config/n
 ```text
 ~/.config/nvim/
 ├── init.lua                      # Root entry point & lazy bootstrap
+├── install.sh                    # Cross-platform installer & updater (UNIX/Linux/macOS/Git Bash)
+├── install.ps1                   # Native Windows PowerShell installer & updater
 ├── lazy-lock.json                # Plugin version pin lockfile
 ├── shortcuts.conf                # Linux-style central shortcuts configuration
 ├── README.md                     # Root summary

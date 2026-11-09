@@ -2,11 +2,50 @@
 
 A modular Neovim setup using [lazy.nvim](https://github.com/folke/lazy.nvim) for plugin management.
 
+## Quick Installation & Update (Automated Setup)
+
+The universal installer automatically detects your operating system and architecture (**Linux** distros including **Gentoo**, **Arch/CachyOS**, **Debian/Ubuntu**, **Fedora**, **openSUSE**, **Void**, **Alpine**, **NixOS**; **macOS ARM64 & older Intel x86_64**; **FreeBSD/OpenBSD**; and **Windows** via WSL, Git Bash, MSYS2, or PowerShell), installs all essential dependencies, asks **1 by 1** which optional tools you want before starting, clones/updates this repository in `~/.config/nvim`, and syncs all plugins and Treesitter parsers headlessly.
+
+### Linux, macOS & UNIX (Install to `~/.local/bin` & Run)
+
+Run the following command to install the setup script into `~/.local/bin/nvim-installer` and execute it immediately:
+
+```bash
+mkdir -p ~/.local/bin && curl -fsSL https://raw.githubusercontent.com/Johannesgauss/nvim_config/main/install.sh -o ~/.local/bin/nvim-installer && chmod +x ~/.local/bin/nvim-installer && ~/.local/bin/nvim-installer
+```
+
+*(Alternatively, using `wget`:)*
+```bash
+mkdir -p ~/.local/bin && wget -qO ~/.local/bin/nvim-installer https://raw.githubusercontent.com/Johannesgauss/nvim_config/main/install.sh && chmod +x ~/.local/bin/nvim-installer && ~/.local/bin/nvim-installer
+```
+
+### Windows (PowerShell)
+
+```powershell
+irm https://raw.githubusercontent.com/Johannesgauss/nvim_config/main/install.ps1 | iex
+```
+
+### Updating & Managing Afterward
+
+Once installed on UNIX systems, `nvim-installer` stays in `~/.local/bin/nvim-installer` so you can update or reconfigure at any time from anywhere:
+
+```bash
+nvim-installer --update        # Updates ~/.config/nvim, plugins, Treesitter parsers & dependencies
+nvim-installer --quick-update  # Fast git pull + plugin sync only
+nvim-installer                 # Interactive mode (update or add new optional tools 1-by-1)
+nvim-installer --all           # Non-interactive: install essentials + all optionals
+nvim-installer --minimal       # Non-interactive: install essentials only
+```
+
+---
+
 ## Structure
 
 ```text
 ~/.config/nvim
 ├── init.lua             # Entry point & lazy.nvim bootstrap
+├── install.sh           # Universal cross-platform installer & updater (UNIX/Linux/macOS/Git Bash)
+├── install.ps1          # Native Windows PowerShell installer & updater
 ├── shortcuts.conf       # Linux-style central shortcuts config (key = action)
 ├── lua/
 │   ├── core/           # Core configuration (options & shortcuts parser)
@@ -50,12 +89,13 @@ To ensure all plugins, treesitter parsers, search tools, and language servers fu
 | :--- | :--- | :--- |
 | **Lazygit** | Fullscreen interactive Git terminal tab (`<leader>gg`) | `lazygit` |
 | **Rust / Cargo** | Rust development & `rust-analyzer` LSP | `cargo`, `rustc` |
+| **GDB / LLDB** | Quick C/C++/Rust compilation & terminal debugging (`<leader>db`) | `gdb` or `lldb` |
 | **LaTeX Tools** | Full `.tex` compilation & live PDF preview via VimTeX | `latexmk`, `texlive`, `zathura` |
 | **Nerd Font** | Icons for statusline, NvimTree, and Telescope (GUI/terminal) | [JetBrains Mono Nerd Font](https://www.nerdfonts.com/) |
 | **AI CLIs** | AI assistant terminal panels | `agy`, `claude`, `ollama` |
 
 > [!TIP]
-> The editor automatically checks standard paths (`~/.local/bin`, `~/.cargo/bin`, `/usr/local/bin`) upon launch, ensuring locally compiled binaries (like `tree-sitter`, `rg`, `fd`) are immediately accessible across all environments.
+> The editor automatically checks standard paths (`~/.local/bin`, `~/.cargo/bin`, `/opt/homebrew/bin`, `/usr/local/bin`, `/opt/local/bin`) upon launch, ensuring locally compiled binaries (like `tree-sitter`, `rg`, `fd`, `nvim-installer`) are immediately accessible across all environments.
 
 ---
 
