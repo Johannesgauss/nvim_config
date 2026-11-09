@@ -133,7 +133,9 @@ local actions = {
         local ft = vim.bo[bufnr].filetype
         local file_dir = vim.fn.fnamemodify(filepath, ":p:h")
         local stem = vim.fn.fnamemodify(filepath, ":t:r")
-        local out_bin = "/tmp/gdb_" .. stem
+        local is_win = vim.fn.has("win32") == 1
+        local tmp_dir = is_win and vim.fn.fnamemodify(vim.fn.tempname(), ":h") or "/tmp"
+        local out_bin = vim.fs.joinpath(tmp_dir, "gdb_" .. stem .. (is_win and ".exe" or ""))
         local cmd = nil
 
         if ft == "cpp" then
@@ -180,7 +182,14 @@ local actions = {
         vim.cmd("belowright " .. height .. "split | enew")
         local gdb_win = vim.api.nvim_get_current_win()
         vim.wo[gdb_win].winfixheight = true
-        vim.fn.termopen({ "gdb", "-q", "-ex", "set print pretty on", out_bin }, { cwd = file_dir })
+        if vim.fn.executable("gdb") == 1 then
+            vim.fn.termopen({ "gdb", "-q", "-ex", "set print pretty on", out_bin }, { cwd = file_dir })
+        elseif vim.fn.executable("lldb") == 1 then
+            vim.fn.termopen({ "lldb", out_bin }, { cwd = file_dir })
+        else
+            vim.notify("Neither gdb nor lldb found in PATH", vim.log.levels.ERROR)
+            return
+        end
         vim.cmd("startinsert")
     end,
 

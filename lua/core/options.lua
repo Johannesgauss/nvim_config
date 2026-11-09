@@ -1,11 +1,19 @@
 local opt = vim.opt
 
 -- Automatically ensure user bin directories are in PATH across all environments (rg, fd, etc.)
-local home = vim.env.HOME or vim.fn.expand("~")
-local standard_bin_paths = { home .. "/.local/bin", home .. "/.cargo/bin", "/usr/local/bin" }
+local home = vim.env.HOME or vim.env.USERPROFILE or vim.fn.expand("~")
+local is_win = vim.uv and vim.uv.os_uname().sysname:find("Windows") ~= nil or package.config:sub(1, 1) == "\\"
+local path_sep = is_win and ";" or ":"
+local standard_bin_paths = {
+    home .. "/.local/bin",
+    home .. "/.cargo/bin",
+    "/opt/homebrew/bin",
+    "/usr/local/bin",
+    "/opt/local/bin",
+}
 for _, dir in ipairs(standard_bin_paths) do
-    if vim.fn.isdirectory(dir) == 1 and not string.find(vim.env.PATH, dir, 1, true) then
-        vim.env.PATH = dir .. ":" .. vim.env.PATH
+    if vim.fn.isdirectory(dir) == 1 and not string.find(vim.env.PATH or "", dir, 1, true) then
+        vim.env.PATH = dir .. path_sep .. (vim.env.PATH or "")
     end
 end
 
