@@ -41,9 +41,6 @@ function M.toggle()
     vim.cmd("terminal agy")
     agy_buf = vim.api.nvim_get_current_buf()
     vim.opt_local.winfixwidth = true
-    vim.keymap.set("n", "<leader>as", function() M.resize(0.25) end, { buffer = agy_buf, desc = "Antigravity: Resize to 25%" })
-    vim.keymap.set("n", "<leader>am", function() M.resize(0.42) end, { buffer = agy_buf, desc = "Antigravity: Resize to 42%" })
-    vim.keymap.set("n", "<leader>al", function() M.resize(0.65) end, { buffer = agy_buf, desc = "Antigravity: Resize to 65%" })
     vim.cmd("startinsert")
   end
 end
@@ -53,8 +50,6 @@ M.specs = {
     "antigravity",
     virtual = true,
     config = function()
-      vim.keymap.set("n", "<leader>ad", M.toggle_diffview, { desc = "Antigravity: Toggle Diffview" })
-      vim.keymap.set("n", "<leader>ai", M.toggle, { desc = "Toggle Antigravity CLI Panel" })
     end,
   },
 }

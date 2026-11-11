@@ -37,10 +37,6 @@ M.specs = {
     "claudecode",
     virtual = true,
     config = function()
-      vim.keymap.set("n", "<leader>ci", M.toggle, { desc = "Toggle Claude Code Panel" })
-      vim.keymap.set({ "n", "t" }, "<leader>cs", function() M.resize(0.25) end)
-      vim.keymap.set({ "n", "t" }, "<leader>ce", function() M.resize(0.65) end)
-      vim.keymap.set({ "n", "t" }, "<leader>ct", function() M.resize(1.00) end)
     end,
   },
 }

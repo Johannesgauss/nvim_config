@@ -26,10 +26,6 @@ M.specs = {
 }
 
 M.setup = function()
-  -- Trigger local autocomplete manually with <leader>om
-  vim.keymap.set("i", "<C-y>", function()
-    require("minuet").complete()
-  end, { desc = "Ollama: Trigger autocomplete" })
 end
 
 return M

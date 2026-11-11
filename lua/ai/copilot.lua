@@ -42,6 +42,30 @@ end,
   },
 }
 
+function M.toggle_chat()
+  local ok, chat = pcall(require, "CopilotChat")
+  if ok and chat.toggle then chat.toggle() end
+end
+
+function M.reset_chat()
+  local ok, chat = pcall(require, "CopilotChat")
+  if ok and chat.reset then chat.reset() end
+end
+
+function M.accept()
+  local ok, suggestion = pcall(require, "copilot.suggestion")
+  if ok and suggestion.is_visible() then
+    suggestion.accept()
+    return true
+  end
+  return false
+end
+
+function M.next()
+  local ok, suggestion = pcall(require, "copilot.suggestion")
+  if ok then suggestion.next() end
+end
+
 -- Runtime logic
 M.setup = function()
   vim.api.nvim_create_user_command("CopilotStart", function()
@@ -67,28 +91,6 @@ M.setup = function()
 
     require("lazy").load({ plugins = { "copilot.lua", "CopilotChat.nvim" } })
     require("copilot.command").enable()
-
-    vim.keymap.set({ "n", "v" }, "<leader>cc", function()
-      require("CopilotChat").toggle()
-    end, { desc = "CopilotChat: Toggle chat window" })
-
-    vim.keymap.set("n", "<leader>cr", function()
-      require("CopilotChat").reset()
-    end, { desc = "CopilotChat: Clear conversation history" })
-
-    local suggestion = require("copilot.suggestion")
-
-    vim.keymap.set("i", "<C-e>", function()
-      if suggestion.is_visible() then
-        suggestion.accept()
-      else
-        return vim.api.nvim_replace_termcodes("<C-e>", true, true, true)
-      end
-    end, { expr = true, desc = "Copilot: Accept suggestion" })
-
-    vim.keymap.set("i", "<M-.>", function()
-      suggestion.next()
-    end, { desc = "Copilot: Next suggestion" })
 
     vim.notify("✓ Copilot active in safe directory: " .. current_dir, vim.log.levels.INFO)
   end, {})
