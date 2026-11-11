@@ -99,16 +99,38 @@ local actions = {
         end
     end,
 
-    -- LSP Diagnostics & Documentation
+    -- LSP Diagnostics, Navigation & Code Actions
+    ["lsp:definition"] = vim.lsp.buf.definition,
+    ["lsp:declaration"] = vim.lsp.buf.declaration,
+    ["lsp:implementation"] = vim.lsp.buf.implementation,
+    ["lsp:references"] = vim.lsp.buf.references,
+    ["lsp:rename"] = vim.lsp.buf.rename,
+    ["lsp:code_action"] = vim.lsp.buf.code_action,
+    ["lsp:diagnostic_prev"] = vim.diagnostic.goto_prev,
+    ["lsp:diagnostic_next"] = vim.diagnostic.goto_next,
+    ["lsp:diagnostic_loclist"] = vim.diagnostic.setloclist,
+    ["lsp:document_symbol"] = vim.lsp.buf.document_symbol,
+    ["lsp:class_inspector"] = function()
+        local ok, ci = pcall(require, "core.class_inspector")
+        if ok and ci.inspect_class then ci.inspect_class(0) end
+    end,
+    ["lsp:signature_help"] = function()
+        vim.lsp.buf.signature_help({
+            close_events = { "InsertLeave", "BufLeave" },
+            anchor_bias = "above",
+        })
+    end,
+    ["lsp:toggle_inlay_hints"] = function()
+        local enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = 0 })
+        vim.lsp.inlay_hint.enable(not enabled, { bufnr = 0 })
+    end,
     ["lsp:diagnostic_float"] = function()
         vim.diagnostic.open_float(nil, { focusable = true, border = "rounded", source = "always" })
     end,
     ["lsp:hover_doc"] = function()
         local bufnr = vim.api.nvim_get_current_buf()
         local clients = vim.lsp.get_clients({ bufnr = bufnr, method = "textDocument/hover" })
-        if #clients > 0 then
-            vim.lsp.buf.hover()
-        else
+        if #clients == 0 then
             local cword = vim.fn.expand("<cword>")
             if cword and cword ~= "" then
                 local ok = pcall(vim.cmd.help, cword)
@@ -116,7 +138,52 @@ local actions = {
                     vim.cmd("normal! K")
                 end
             end
+            return
         end
+
+        local cur_word = vim.fn.expand("<cword>")
+        local client = clients[1]
+        local h_params = vim.lsp.util.make_position_params(0, client.offset_encoding)
+        local ok_ci, class_inspector = pcall(require, "core.class_inspector")
+
+        client:request("textDocument/hover", h_params, function(h_err, h_result)
+            local lines = {}
+            if not h_err and h_result and h_result.contents then
+                lines = vim.lsp.util.convert_input_to_markdown_lines(h_result.contents)
+            end
+
+            if ok_ci and class_inspector and class_inspector.resolve_class_details then
+                class_inspector.resolve_class_details(bufnr, client, h_params, cur_word, lines, function(class_lines)
+                    if class_lines and #class_lines > 0 then
+                        if #lines > 0 then
+                            table.insert(lines, "")
+                            table.insert(lines, "---")
+                        end
+                        for _, cl in ipairs(class_lines) do
+                            table.insert(lines, cl)
+                        end
+                    end
+
+                    if #lines > 0 then
+                        vim.lsp.util.open_floating_preview(lines, "markdown", {
+                            border = "rounded",
+                            focus_id = "textDocument/hover",
+                        })
+                    else
+                        vim.notify("No information available", vim.log.levels.INFO)
+                    end
+                end)
+            else
+                if #lines > 0 then
+                    vim.lsp.util.open_floating_preview(lines, "markdown", {
+                        border = "rounded",
+                        focus_id = "textDocument/hover",
+                    })
+                else
+                    vim.notify("No information available", vim.log.levels.INFO)
+                end
+            end
+        end)
     end,
 
     -- Plain CLI GDB (Auto-Compile & Debug Current File)
@@ -202,9 +269,33 @@ local actions = {
         local ok, agy = pcall(require, "ai.antigravity")
         if ok and agy.toggle_diffview then agy.toggle_diffview() end
     end,
+    ["ai:antigravity_resize_small"] = function()
+        local ok, agy = pcall(require, "ai.antigravity")
+        if ok and agy.resize then agy.resize(0.25) end
+    end,
+    ["ai:antigravity_resize_med"] = function()
+        local ok, agy = pcall(require, "ai.antigravity")
+        if ok and agy.resize then agy.resize(0.42) end
+    end,
+    ["ai:antigravity_resize_large"] = function()
+        local ok, agy = pcall(require, "ai.antigravity")
+        if ok and agy.resize then agy.resize(0.65) end
+    end,
     ["ai:claude_toggle"] = function()
         local ok, cc = pcall(require, "ai.claudecode")
         if ok and cc.toggle then cc.toggle() end
+    end,
+    ["ai:claude_resize_small"] = function()
+        local ok, cc = pcall(require, "ai.claudecode")
+        if ok and cc.resize then cc.resize(0.25) end
+    end,
+    ["ai:claude_resize_med"] = function()
+        local ok, cc = pcall(require, "ai.claudecode")
+        if ok and cc.resize then cc.resize(0.65) end
+    end,
+    ["ai:claude_resize_full"] = function()
+        local ok, cc = pcall(require, "ai.claudecode")
+        if ok and cc.resize then cc.resize(1.00) end
     end,
     ["ai:copilot_chat"] = function()
         local ok, cp = pcall(require, "ai.copilot")
@@ -213,6 +304,18 @@ local actions = {
     ["ai:copilot_reset"] = function()
         local ok, cp = pcall(require, "ai.copilot")
         if ok and cp.reset_chat then cp.reset_chat() end
+    end,
+    ["ai:copilot_accept"] = function()
+        local ok, cp = pcall(require, "ai.copilot")
+        if ok and cp.accept and cp.accept() then
+            return
+        end
+        local key = vim.api.nvim_replace_termcodes("<C-e>", true, true, true)
+        vim.api.nvim_feedkeys(key, "n", false)
+    end,
+    ["ai:copilot_next"] = function()
+        local ok, cp = pcall(require, "ai.copilot")
+        if ok and cp.next then cp.next() end
     end,
     ["ai:ollama_complete"] = function()
         local ok, ol = pcall(require, "ai.ollama")
