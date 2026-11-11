@@ -74,42 +74,17 @@ local actions = {
     ["terminal:toggle"] = toggle_terminal,
     ["lazygit:open"] = open_lazygit,
 
-    -- Markdown & LaTeX Viewing
-    ["markdown:toggle_view"] = function()
-        require("ui.markdown_view").toggle()
-    end,
-    ["markdown:toggle_render"] = function()
-        local ok, rm = pcall(require, "render-markdown")
-        if ok and rm.toggle then
-            rm.toggle()
-        else
-            vim.cmd("RenderMarkdown toggle")
-        end
-    end,
-    ["latex:popup"] = function()
-        local ok, _ = pcall(vim.cmd, "NablaPopup")
-        if not ok then
-            pcall(function() require("nabla").popup({ border = "rounded" }) end)
-        end
-    end,
-    ["latex:toggle_virt"] = function()
-        local ok, _ = pcall(vim.cmd, "NablaToggle")
-        if not ok then
-            pcall(function() require("nabla").toggle_virt() end)
-        end
-    end,
-
-    -- LSP Diagnostics, Navigation & Code Actions
-    ["lsp:definition"] = vim.lsp.buf.definition,
-    ["lsp:declaration"] = vim.lsp.buf.declaration,
-    ["lsp:implementation"] = vim.lsp.buf.implementation,
-    ["lsp:references"] = vim.lsp.buf.references,
-    ["lsp:rename"] = vim.lsp.buf.rename,
-    ["lsp:code_action"] = vim.lsp.buf.code_action,
-    ["lsp:diagnostic_prev"] = vim.diagnostic.goto_prev,
-    ["lsp:diagnostic_next"] = vim.diagnostic.goto_next,
-    ["lsp:diagnostic_loclist"] = vim.diagnostic.setloclist,
-    ["lsp:document_symbol"] = vim.lsp.buf.document_symbol,
+    -- LSP Diagnostics, Navigation & Code Actions (lazy-wrapped to avoid loading vim.lsp on startup)
+    ["lsp:definition"] = function() vim.lsp.buf.definition() end,
+    ["lsp:declaration"] = function() vim.lsp.buf.declaration() end,
+    ["lsp:implementation"] = function() vim.lsp.buf.implementation() end,
+    ["lsp:references"] = function() vim.lsp.buf.references() end,
+    ["lsp:rename"] = function() vim.lsp.buf.rename() end,
+    ["lsp:code_action"] = function() vim.lsp.buf.code_action() end,
+    ["lsp:diagnostic_prev"] = function() vim.diagnostic.goto_prev() end,
+    ["lsp:diagnostic_next"] = function() vim.diagnostic.goto_next() end,
+    ["lsp:diagnostic_loclist"] = function() vim.diagnostic.setloclist() end,
+    ["lsp:document_symbol"] = function() vim.lsp.buf.document_symbol() end,
     ["lsp:class_inspector"] = function()
         local ok, ci = pcall(require, "core.class_inspector")
         if ok and ci.inspect_class then ci.inspect_class(0) end
@@ -265,6 +240,10 @@ local actions = {
         local ok, agy = pcall(require, "ai.antigravity")
         if ok and agy.toggle then agy.toggle() end
     end,
+    ["ai:antigravity_auto"] = function()
+        local ok, agy = pcall(require, "ai.antigravity")
+        if ok and agy.toggle_auto then agy.toggle_auto() end
+    end,
     ["ai:antigravity_diffview"] = function()
         local ok, agy = pcall(require, "ai.antigravity")
         if ok and agy.toggle_diffview then agy.toggle_diffview() end
@@ -338,10 +317,6 @@ vim.api.nvim_create_user_command("ToggleVimLook", function()
     require("ui.vim_look").toggle()
 end, { desc = "Toggle between classic and modern Vim look" })
 
-vim.api.nvim_create_user_command("ToggleMarkdownView", function()
-    require("ui.markdown_view").toggle()
-end, { desc = "Toggle Markdown Reader Mode (Distraction-Free)" })
-
 vim.api.nvim_create_user_command("Cowabuga", function(opts)
     require("core.cowabuga").command(opts.args)
 end, {
@@ -365,11 +340,21 @@ end, {
 -- ============================================================================
 -- Linux-Style Configuration Loader (shortcuts.conf)
 -- ============================================================================
+local optional_prefixes = {
+    markdown = true,
+    latex = true,
+    docx = true,
+}
+
 local function load_shortcuts_conf()
     local conf_path = vim.fs.joinpath(vim.fn.stdpath("config"), "shortcuts.conf")
     if vim.fn.filereadable(conf_path) ~= 1 then
         return false
     end
+
+    local features = require("core.features")
+    features.load()
+    local mod_actions = require("modules").actions()
 
     local lines = vim.fn.readfile(conf_path)
     local current_mode = "n"
@@ -401,25 +386,29 @@ local function load_shortcuts_conf()
                         desc = vim.trim(parts[2] or "")
                     end
 
-                    local mode_str = inline_mode or current_mode
-                    local modes = {}
-                    for m in mode_str:gmatch("%a") do
-                        table.insert(modes, m)
-                    end
-                    if #modes == 0 then modes = { "n" } end
-
-                    local handler
-                    if actions[action] then
-                        handler = actions[action]
-                    else
-                        handler = action
+                    -- Check if action belongs to an optional feature that is disabled
+                    local prefix = action:match("^([%a_]+):")
+                    local skip = false
+                    if prefix and optional_prefixes[prefix] and not features.is_enabled(prefix) then
+                        skip = true
                     end
 
-                    for _, m in ipairs(modes) do
-                        keymap.set(m, key, handler, {
-                            desc = desc ~= "" and desc or nil,
-                            silent = true,
-                        })
+                    if not skip then
+                        local mode_str = inline_mode or current_mode
+                        local modes = {}
+                        for m in mode_str:gmatch("%a") do
+                            table.insert(modes, m)
+                        end
+                        if #modes == 0 then modes = { "n" } end
+
+                        local handler = mod_actions[action] or actions[action] or action
+
+                        for _, m in ipairs(modes) do
+                            keymap.set(m, key, handler, {
+                                desc = desc ~= "" and desc or nil,
+                                silent = true,
+                            })
+                        end
                     end
                 end
             end
@@ -427,6 +416,14 @@ local function load_shortcuts_conf()
     end
     return true
 end
+
+vim.api.nvim_create_autocmd("BufWritePost", {
+    pattern = { "shortcuts.conf", "features.conf" },
+    callback = function(ev)
+        load_shortcuts_conf()
+        vim.notify(vim.fn.fnamemodify(ev.file, ":t") .. " reloaded", vim.log.levels.INFO)
+    end,
+})
 
 -- Try loading Linux-style shortcuts.conf first; fallback to lua/config/shortcuts.lua if absent
 if not load_shortcuts_conf() then

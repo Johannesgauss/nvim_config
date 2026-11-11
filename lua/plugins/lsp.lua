@@ -2,6 +2,8 @@ return {
   -- Mason for managing LSP servers, linters, formatters
   {
     "williamboman/mason.nvim",
+    cmd = { "Mason", "MasonInstall", "MasonUpdate", "MasonUninstall", "MasonLog" },
+    event = { "BufReadPre", "BufNewFile" },
     config = function()
       require("mason").setup({
         ui = {
@@ -18,6 +20,7 @@ return {
   -- mason-lspconfig bridges mason and lspconfig
   {
     "williamboman/mason-lspconfig.nvim",
+    event = { "BufReadPre", "BufNewFile" },
     dependencies = { "williamboman/mason.nvim" },
     config = function()
         require("mason-lspconfig").setup({
@@ -29,6 +32,7 @@ return {
   -- LSPConfig for configuring the LSP servers
   {
     "neovim/nvim-lspconfig",
+    event = { "BufReadPre", "BufNewFile" },
     dependencies = {
       "williamboman/mason-lspconfig.nvim",
       "hrsh7th/cmp-nvim-lsp",
@@ -177,13 +181,16 @@ return {
                 return
               end
 
-              -- Debounced update while typing parameters
-              if sig_timer then
-                sig_timer:stop()
+              -- Debounced update while typing parameters only if signature window is already open and valid
+              local existing_win = vim.b[bufnr].lsp_floating_preview
+              if existing_win and vim.api.nvim_win_is_valid(existing_win) then
+                if sig_timer then
+                  sig_timer:stop()
+                end
+                sig_timer = vim.defer_fn(function()
+                  trigger_signature_help()
+                end, 200)
               end
-              sig_timer = vim.defer_fn(function()
-                trigger_signature_help()
-              end, 200)
             end,
           })
         end,
@@ -565,6 +572,7 @@ return {
   -- Autocompletion engine and sources
   {
     "hrsh7th/nvim-cmp",
+    event = { "InsertEnter", "CmdlineEnter" },
     dependencies = {
       "hrsh7th/cmp-nvim-lsp",
       "hrsh7th/cmp-buffer",

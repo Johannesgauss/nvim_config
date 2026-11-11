@@ -1,0 +1,120 @@
+-- ============================================================================
+-- Optional Module: Markdown (lua/modules/markdown.lua)
+-- ============================================================================
+-- Self-contained module for Markdown rendering and distraction-free reader view.
+-- Controlled via `markdown = true/false` in features.conf.
+-- ============================================================================
+local M = {}
+
+M.name = "markdown"
+
+M.plugins = {
+    {
+        "MeanderingProgrammer/render-markdown.nvim",
+        dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
+        ft = { "markdown" },
+        opts = {
+            heading = {
+                enabled = true,
+                sign = true,
+                icons = { "󰲡 ", "󰲣 ", "󰲥 ", "󰲧 ", "󰲩 ", "󰲫 " },
+            },
+            code = {
+                enabled = true,
+                sign = false,
+                style = "full",
+                border = "thin",
+            },
+            bullet = {
+                enabled = true,
+                icons = { "●", "○", "◆", "◇" },
+            },
+            checkbox = {
+                enabled = true,
+            },
+            anti_conceal = {
+                enabled = false,
+            },
+            win_options = {
+                conceallevel = {
+                    default = 2,
+                    rendered = 2,
+                },
+                concealcursor = {
+                    default = "nc",
+                    rendered = "nc",
+                },
+            },
+            latex = {
+                enabled = false,
+            },
+            pipe_table = {
+                enabled = true,
+                style = "full",
+                border = {
+                    "┌", "┬", "┐",
+                    "├", "┼", "┤",
+                    "└", "┴", "┘",
+                    "│", "─",
+                },
+            },
+            callout = {
+                note = { raw = "[!NOTE]", rendered = "󰋽 Note", highlight = "RenderMarkdownInfo" },
+                tip = { raw = "[!TIP]", rendered = "󰌶 Tip", highlight = "RenderMarkdownSuccess" },
+                important = { raw = "[!IMPORTANT]", rendered = "󰅾 Important", highlight = "RenderMarkdownHint" },
+                warning = { raw = "[!WARNING]", rendered = "󰀪 Warning", highlight = "RenderMarkdownWarn" },
+                caution = { raw = "[!CAUTION]", rendered = "󰳦 Caution", highlight = "RenderMarkdownError" },
+            },
+        },
+        config = function(_, opts)
+            if vim.g.tty_mode then
+                opts.heading = vim.tbl_deep_extend("force", opts.heading or {}, {
+                    icons = { "# ", "## ", "### ", "#### ", "##### ", "###### " },
+                })
+                opts.bullet = vim.tbl_deep_extend("force", opts.bullet or {}, {
+                    icons = { "*", "-", "+", "*" },
+                })
+                opts.pipe_table = vim.tbl_deep_extend("force", opts.pipe_table or {}, {
+                    border = {
+                        "+", "+", "+",
+                        "+", "+", "+",
+                        "+", "+", "+",
+                        "|", "-",
+                    },
+                })
+                opts.callout = {
+                    note = { raw = "[!NOTE]", rendered = "[NOTE]", highlight = "RenderMarkdownInfo" },
+                    tip = { raw = "[!TIP]", rendered = "[TIP]", highlight = "RenderMarkdownSuccess" },
+                    important = { raw = "[!IMPORTANT]", rendered = "[IMPORTANT]", highlight = "RenderMarkdownHint" },
+                    warning = { raw = "[!WARNING]", rendered = "[WARNING]", highlight = "RenderMarkdownWarn" },
+                    caution = { raw = "[!CAUTION]", rendered = "[CAUTION]", highlight = "RenderMarkdownError" },
+                }
+            end
+
+            require("render-markdown").setup(opts)
+        end,
+    },
+}
+
+M.actions = {
+    ["markdown:toggle_view"] = function()
+        require("ui.markdown_view").toggle()
+    end,
+    ["markdown:toggle_render"] = function()
+        local ok, rm = pcall(require, "render-markdown")
+        if ok and rm.toggle then
+            rm.toggle()
+        else
+            pcall(vim.cmd, "RenderMarkdown toggle")
+        end
+    end,
+}
+
+function M.setup()
+    require("ui.markdown_view")
+    vim.api.nvim_create_user_command("ToggleMarkdownView", function()
+        require("ui.markdown_view").toggle()
+    end, { desc = "Toggle Markdown Reader Mode (Distraction-Free)" })
+end
+
+return M

@@ -65,31 +65,36 @@ local function is_tty_environment()
         return true
     end
 
-    -- 3. Terminal device check via tty(1)
-    -- Linux virtual consoles return /dev/tty1 .. /dev/tty63
-    -- Serial consoles return /dev/ttyS*, /dev/ttyUSB*, /dev/ttyAMA*
-    -- BSD virtual consoles return /dev/ttyv*
-    if vim.fn.executable("tty") == 1 then
-        local ok, tty_out = pcall(function()
-            return vim.trim(vim.fn.system("tty") or "")
-        end)
-        if ok and tty_out and tty_out ~= "" then
-            if tty_out:match("^/dev/tty%d+$")
-                or tty_out:match("^/dev/console$")
-                or tty_out:match("^/dev/ttyv%d")
-                or tty_out:match("^/dev/ttyS")
-                or tty_out:match("^/dev/ttyUSB")
-                or tty_out:match("^/dev/ttyAMA") then
-                return true
-            end
+    -- 3. Fast path for modern GUI terminal emulators (0 subprocess forks!)
+    if term:match("kitty") or term:match("alacritty") or term:match("foot") or term:match("wezterm") or term:match("ghostty") then
+        return false
+    end
+    local has_display = (vim.env.DISPLAY and vim.env.DISPLAY ~= "")
+        or (vim.env.WAYLAND_DISPLAY and vim.env.WAYLAND_DISPLAY ~= "")
+    if has_display and (term:match("256color") or term:match("xterm") or term:match("tmux") or term:match("screen")) then
+        return false
+    end
+
+    -- 4. Zero-fork terminal device check via libuv (/proc/self/fd/0)
+    -- Linux virtual consoles resolve to /dev/tty1 .. /dev/tty63 (whereas PTYs resolve to /dev/pts/*)
+    local tty_out = (vim.uv and vim.uv.fs_realpath and vim.uv.fs_realpath("/proc/self/fd/0")) or nil
+    if tty_out and tty_out ~= "" then
+        if tty_out:match("^/dev/tty%d+$")
+            or tty_out:match("^/dev/console$")
+            or tty_out:match("^/dev/ttyv%d")
+            or tty_out:match("^/dev/ttyS")
+            or tty_out:match("^/dev/ttyUSB")
+            or tty_out:match("^/dev/ttyAMA") then
+            return true
+        end
+        if tty_out:match("^/dev/pts/") then
+            return false
         end
     end
 
-    -- 4. Environment fallback: No GUI display server AND no colorterm AND not a 256color terminal emulator
-    local no_display = (not vim.env.DISPLAY or vim.env.DISPLAY == "")
-        and (not vim.env.WAYLAND_DISPLAY or vim.env.WAYLAND_DISPLAY == "")
+    -- 5. Environment fallback: No GUI display server AND no colorterm AND not a 256color terminal emulator
     local no_colorterm = (not vim.env.COLORTERM or vim.env.COLORTERM == "")
-    if no_display and no_colorterm and not term:match("256color") and not term:match("kitty") and not term:match("alacritty") and not term:match("xterm") then
+    if not has_display and no_colorterm and not term:match("256color") and not term:match("kitty") and not term:match("alacritty") and not term:match("xterm") then
         return true
     end
 

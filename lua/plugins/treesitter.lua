@@ -89,6 +89,8 @@ return {
   "nvim-treesitter/nvim-treesitter",
   branch = "master",
   build = ":TSUpdate",
+  event = { "BufReadPost", "BufNewFile" },
+  cmd = { "TSUpdate", "TSInstall", "TSBufEnable", "TSModuleInfo" },
   init = function()
     setup_treesitter_compat()
   end,

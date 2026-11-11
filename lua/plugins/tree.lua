@@ -95,7 +95,13 @@ return {
     end
 
     local is_tree_initialized = false
+    local last_is_tty = nil
     local function setup_nvim_tree(is_tty)
+      if is_tree_initialized and last_is_tty == is_tty then
+        return
+      end
+      last_is_tty = is_tty
+
       local ok_api, api = pcall(require, "nvim-tree.api")
       local was_visible = false
       if is_tree_initialized and ok_api and api.tree and api.tree.is_visible then
@@ -153,7 +159,7 @@ return {
         respect_buf_cwd = true,
         update_focused_file = {
           enable = true,
-          update_root = true,
+          update_root = false,
         },
         sort = {
           sorter = "case_sensitive",

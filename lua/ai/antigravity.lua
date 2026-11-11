@@ -23,7 +23,7 @@ function M.toggle_diffview()
   end
 end
 
-function M.toggle()
+function M.toggle(cmd_args)
   local slim_width = math.floor(vim.o.columns * 0.25)
   if agy_buf and vim.api.nvim_buf_is_valid(agy_buf) and vim.b[agy_buf].terminal_job_id then
     local win = vim.fn.bufwinnr(agy_buf)
@@ -38,11 +38,19 @@ function M.toggle()
     end
   else
     vim.cmd("belowright " .. slim_width .. "vsplit")
-    vim.cmd("terminal agy")
+    local cmd = "terminal agy"
+    if cmd_args and cmd_args ~= "" then
+      cmd = cmd .. " " .. cmd_args
+    end
+    vim.cmd(cmd)
     agy_buf = vim.api.nvim_get_current_buf()
     vim.opt_local.winfixwidth = true
     vim.cmd("startinsert")
   end
+end
+
+function M.toggle_auto()
+  M.toggle("--mode auto --dangerously-skip-permissions")
 end
 
 M.specs = {
