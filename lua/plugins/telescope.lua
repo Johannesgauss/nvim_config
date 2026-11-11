@@ -13,13 +13,6 @@ return {
     "nvim-tree/nvim-web-devicons",
   },
   cmd = "Telescope",
-  keys = {
-    { "<leader>F", "<cmd>Telescope live_grep<cr>", desc = "Telescope live grep (search text)" },
-    { "<leader>f", "<cmd>Telescope find_files<cr>", desc = "Telescope find files" },
-    { "<leader>fb", "<cmd>Telescope buffers<cr>", desc = "Telescope buffers" },
-    { "<leader>fh", "<cmd>Telescope help_tags<cr>", desc = "Telescope help tags" },
-    { "<leader>fs", "<cmd>Telescope grep_string<cr>", desc = "Telescope grep string under cursor" },
-  },
   opts = {
     defaults = {
       path_display = { "truncate" },

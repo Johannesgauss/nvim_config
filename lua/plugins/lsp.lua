@@ -122,40 +122,6 @@ return {
             end)
           end
 
-          -- Set keymaps
-          vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition", buffer = bufnr })
-          vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { desc = "Go to declaration", buffer = bufnr })
-          vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "Go to implementation", buffer = bufnr })
-          vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "Go to references", buffer = bufnr })
-          vim.keymap.set("n", "K", show_docs, { desc = "Hover docs / Class details", buffer = bufnr })
-          vim.keymap.set("n", "<C-k>", show_docs, { desc = "Hover docs / Class details", buffer = bufnr })
-          vim.keymap.set("n", "<leader>cs", function() class_inspector.inspect_class(bufnr) end, { desc = "Inspect Class/Struct components & methods", buffer = bufnr })
-          vim.keymap.set("n", "<leader>co", vim.lsp.buf.document_symbol, { desc = "Class & Symbol Outline", buffer = bufnr })
-          vim.keymap.set("n", "gO", vim.lsp.buf.document_symbol, { desc = "Class & Symbol Outline", buffer = bufnr })
-          vim.keymap.set({ "n", "i" }, "<C-s>", function()
-            vim.lsp.buf.signature_help({
-              close_events = { "InsertLeave", "BufLeave" },
-              anchor_bias = "above",
-            })
-          end, { desc = "Signature help (function args)", buffer = bufnr })
-          vim.keymap.set("n", "<leader>k", function()
-            vim.lsp.buf.signature_help({
-              close_events = { "InsertLeave", "BufLeave" },
-              anchor_bias = "above",
-            })
-          end, { desc = "Signature help (function args)", buffer = bufnr })
-          vim.keymap.set("n", "<leader>th", function()
-            local enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr })
-            vim.lsp.inlay_hint.enable(not enabled, { bufnr = bufnr })
-          end, { desc = "Toggle Inlay Hints", buffer = bufnr })
-          vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { desc = "Rename symbol", buffer = bufnr })
-          vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code actions", buffer = bufnr })
-          vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous diagnostic", buffer = bufnr })
-          vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic", buffer = bufnr })
-          vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, { desc = "Open diagnostic float", buffer = bufnr })
-          vim.keymap.set("n", "ge", vim.diagnostic.open_float, { desc = "Open diagnostic float", buffer = bufnr })
-          vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Add diagnostics to loclist", buffer = bufnr })
-
           -- Enable inlay hints if supported by the client
           local client = vim.lsp.get_client_by_id(ev.data.client_id)
           if client and client:supports_method("textDocument/inlayHint", { bufnr = bufnr }) then

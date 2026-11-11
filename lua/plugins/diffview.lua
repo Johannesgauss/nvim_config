@@ -12,12 +12,6 @@ return {
     "DiffviewFocusFiles",
     "DiffviewFileHistory",
   },
-  keys = {
-    { "<leader>gd", "<cmd>DiffviewOpen<cr>", desc = "Open Diffview" },
-    { "<leader>gc", "<cmd>DiffviewClose<cr>", desc = "Close Diffview" },
-    { "<leader>gh", "<cmd>DiffviewFileHistory %<cr>", desc = "Current file history" },
-    { "<leader>gH", "<cmd>DiffviewFileHistory<cr>", desc = "Git history" },
-  },
   config = function()
     require("diffview").setup({
       enhanced_diff_hl = true,

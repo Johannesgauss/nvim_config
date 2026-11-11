@@ -82,9 +82,5 @@ return {
 
     local rm = require("render-markdown")
     rm.setup(opts)
-
-    vim.keymap.set("n", "<leader>mr", "<cmd>RenderMarkdown toggle<CR>", {
-      desc = "Toggle inline visual Markdown rendering",
-    })
   end,
 }

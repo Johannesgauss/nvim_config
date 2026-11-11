@@ -176,23 +176,6 @@ return {
   {
     "jbyuki/nabla.nvim",
     cmd = { "NablaPopup", "NablaToggle" },
-    keys = {
-      {
-        "<leader>lp",
-        preview_math_popup,
-        desc = "LaTeX: Display formula under cursor in 2D popup",
-      },
-      {
-        "<leader>lv",
-        toggle_nabla_virt,
-        desc = "LaTeX: Toggle 2D virtual line formulas in buffer",
-      },
-      {
-        "<leader>mp",
-        preview_math_popup,
-        desc = "Markdown/LaTeX: Display formula under cursor in 2D popup",
-      },
-    },
     config = function()
       vim.api.nvim_create_user_command("NablaPopup", preview_math_popup, {
         desc = "Display LaTeX formula in 2D popup under cursor",
