@@ -22,7 +22,7 @@ return {
     config = function()
         require("mason-lspconfig").setup({
             ensure_installed = { "ts_ls", "clangd", "lua_ls", "pyright", "rust_analyzer" },
-            -- handlers = { -- Configuração padrão para todos os servidores instalados pelo Mason function(server_name) require("lspconfig")[server_name].setup({}) end, },
+            -- handlers = { -- Default configuration for all Mason-installed servers: function(server_name) require("lspconfig")[server_name].setup({}) end, },
         })
      end,
   },
@@ -236,6 +236,7 @@ return {
           "--clang-tidy",
           "--completion-style=detailed",
           "--function-arg-placeholders=1",
+          "--enable-config",
         },
         root_dir = function(bufnr, on_dir)
           local fname = vim.api.nvim_buf_get_name(bufnr)
@@ -312,6 +313,16 @@ return {
             add_dir(vim.fs.joinpath(include_dirs[i], "include"))
           end
 
+          -- 6. Cowabuga: Check if an active unity build include file is configured for this project
+          local ok_cowabuga, cowabuga = pcall(require, "core.cowabuga")
+          local unity_file = nil
+          if ok_cowabuga then
+            unity_file = cowabuga.get_unity_file(config.root_dir or cur_buf)
+            if unity_file and vim.fn.filereadable(unity_file) == 1 then
+              add_dir(vim.fs.dirname(unity_file))
+            end
+          end
+
           -- Pass -I<dir> and C standard flags via clangd initializationOptions.fallbackFlags
           init_params.initializationOptions = init_params.initializationOptions or {}
           local fallback_flags = init_params.initializationOptions.fallbackFlags or {}
@@ -341,6 +352,15 @@ return {
 
           -- Enables standard 'restrict' keyword support in both C and C++ header contexts
           table.insert(fallback_flags, "-Drestrict=__restrict")
+
+          -- Disable error limit to prevent compiler cutoff and "too many errors" diagnostic
+          table.insert(fallback_flags, "-ferror-limit=0")
+
+          -- If Cowabuga unity file is active, add -include <file> so all symbols/preamble are preloaded by LSP
+          if unity_file and vim.fn.filereadable(unity_file) == 1 then
+            table.insert(fallback_flags, "-include")
+            table.insert(fallback_flags, unity_file)
+          end
 
           for _, d in ipairs(include_dirs) do
             table.insert(fallback_flags, "-I" .. d)
@@ -520,6 +540,27 @@ return {
           },
         },
       })
+
+      -- Suppress spurious "Too many errors emitted, stopping now" diagnostic messages
+      local orig_publish = vim.lsp.handlers["textDocument/publishDiagnostics"]
+      vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, result, ctx, config)
+        if result and result.diagnostics then
+          local filtered = {}
+          for _, diag in ipairs(result.diagnostics) do
+            local msg = (diag.message or ""):lower()
+            local code = tostring(diag.code or ""):lower()
+            if not msg:find("too many errors") and not code:find("too_many_errors") then
+              table.insert(filtered, diag)
+            end
+          end
+          result.diagnostics = filtered
+        end
+        if orig_publish then
+          orig_publish(err, result, ctx, config)
+        else
+          vim.lsp.diagnostic.on_publish_diagnostics(err, result, ctx, config)
+        end
+      end
 
       -- Enable servers
       vim.lsp.enable({ "clangd", "pyright", "ts_ls", "lua_ls", "rust_analyzer" })

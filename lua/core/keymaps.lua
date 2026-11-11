@@ -229,15 +229,35 @@ local actions = {
 -- ============================================================================
 vim.api.nvim_create_user_command("ToggleTTY", function()
     require("ui.vim_look").toggle_tty()
-end, { desc = "Alternar modo TTY clássico com bordas ASCII" })
+end, { desc = "Toggle classic TTY mode with ASCII borders" })
 
 vim.api.nvim_create_user_command("ToggleVimLook", function()
     require("ui.vim_look").toggle()
-end, { desc = "Alternar entre visual Vim clássico e moderno" })
+end, { desc = "Toggle between classic and modern Vim look" })
 
 vim.api.nvim_create_user_command("ToggleMarkdownView", function()
     require("ui.markdown_view").toggle()
-end, { desc = "Alternar Modo Leitor de Markdown (Distraction-Free)" })
+end, { desc = "Toggle Markdown Reader Mode (Distraction-Free)" })
+
+vim.api.nvim_create_user_command("Cowabuga", function(opts)
+    require("core.cowabuga").command(opts.args)
+end, {
+    nargs = "*",
+    complete = function(arg_lead, cmd_line, cursor_pos)
+        return require("core.cowabuga").complete(arg_lead, cmd_line, cursor_pos)
+    end,
+    desc = "Set or toggle unity build include file for clangd LSP (:Cowabuga [file|--status|--clear])",
+})
+
+vim.api.nvim_create_user_command("Cowabunga", function(opts)
+    require("core.cowabuga").command(opts.args)
+end, {
+    nargs = "*",
+    complete = function(arg_lead, cmd_line, cursor_pos)
+        return require("core.cowabuga").complete(arg_lead, cmd_line, cursor_pos)
+    end,
+    desc = "Set or toggle unity build include file for clangd LSP (alias)",
+})
 
 -- ============================================================================
 -- Linux-Style Configuration Loader (shortcuts.conf)
