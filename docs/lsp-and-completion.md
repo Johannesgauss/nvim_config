@@ -28,7 +28,7 @@ The native Neovim LSP client is configured via [nvim-lspconfig](https://github.c
 | Server | Languages | Custom Configuration / Features |
 | :--- | :--- | :--- |
 | **`ts_ls`** | TypeScript, JavaScript, JSX, TSX | Standard capabilities bridged to `cmp-nvim-lsp`. |
-| **`clangd`** | C, C++ | Standard compilation database and header indexing. |
+| **`clangd`** | C, C++ | Project-root include resolution, arguments placeholder, and Cowabuga unity build integration. |
 | **`pyright`** | Python | Configured with `autoSearchPaths = true`, `useLibraryCodeForTypes = true`, and `diagnosticMode = "workspace"`. |
 | **`lua_ls`** | Lua, Neovim Configs | Configured with `LuaJIT` runtime, `vim` globals, and Neovim runtime library awareness. |
 | **`rust_analyzer`** | Rust | Configured with Cargo build scripts, proc-macro expansion, Clippy check on save, type/chaining/closing-brace inlay hints. |
@@ -83,7 +83,39 @@ Diagnostics are styled with custom gutter icons and floating windows:
 
 ---
 
-## 5. Autocompletion Engine (`nvim-cmp`)
+## 5. Unity Builds & Cowabuga (`:Cowabuga`)
+
+In educational and systems programming projects (such as compilers, operating systems, and single-unit builds), codebases often organize compilation using a **Unity Build** file (e.g. `unity.c`, `unit.c`, or `program_name_unity.c`). In this pattern, the unity file includes standard headers, typedefs, and all subcomponent `.c` files directly:
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include "ast.h"
+#include "ast.c"
+#include "parser.tab.c"
+#include "lex.yy.c"
+#include "main.c"
+```
+
+Because individual source files (like `ast.c`) do not redundantly re-include standard libraries or headers, standard LSP language servers report dozens of spurious errors (`unknown type name`, `implicit declaration of function`, `undeclared identifier`).
+
+### Using `:Cowabuga`
+The `:Cowabuga` command links your active project to its unity build root, instructing `clangd` to preload the specified include file and include directories via LSP compiler flags (`-include <file>`, `-I<dir>`):
+
+| Command | Action |
+| :--- | :--- |
+| `:Cowabuga <file>` | Sets the unity include file (e.g. `:Cowabuga unit.c` or `:Cowabuga src/unity.c`), reloads clangd, and clears spurious errors immediately. |
+| `:Cowabuga` | Automatically discovers unity candidate files (`*unit*.c`, `*unity*.c`) across project directories and attaches the best match. |
+| `:Cowabuga --status` | Displays the active unity target, resolved include directory, project root, and clangd client status. |
+| `:Cowabuga --clear` | Clears the unity build target and restores default LSP compiler flags. |
+
+> **Clean Git Repositories**: All clangd configurations are saved completely **outside the repository** in the global user directory (`~/.config/clangd/config.yaml` using path-conditional `If: PathMatch` blocks) and persisted in `~/.local/state/nvim/cowabuga_targets.json`. Your project git working tree remains 100% clean with zero untracked configuration files.
+>
+> **No Error Limits ("Too many errors")**: Clang's default cutoff limit is disabled (`-ferror-limit=0`) and the spurious "Too many errors emitted, stopping now" fatal error diagnostic is automatically suppressed.
+
+---
+
+## 6. Autocompletion Engine (`nvim-cmp`)
 
 The completion pipeline is driven by [nvim-cmp](https://github.com/hrsh7th/nvim-cmp) and [LuaSnip](https://github.com/L3MON4D3/LuaSnip).
 

@@ -59,7 +59,7 @@ nvim-installer --minimal       # Non-interactive: install essentials only
 
 - **Package Manager**: [lazy.nvim](https://github.com/folke/lazy.nvim)
 - **Fuzzy Finder & Search**: [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) (live grep & file search)
-- **LSP & Completion**: Native Neovim LSP, [mason.nvim](https://github.com/williamboman/mason.nvim), [nvim-cmp](https://github.com/hrsh7th/nvim-cmp)
+- **LSP & Completion**: Native Neovim LSP, [mason.nvim](https://github.com/williamboman/mason.nvim), [nvim-cmp](https://github.com/hrsh7th/nvim-cmp), and Unity Build support (`:Cowabuga`)
 - **Syntax & Parsers**: [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter)
 - **Markdown & LaTeX**: In-buffer rich rendering (`render-markdown.nvim`), 2D math formula visualization (`nabla.nvim`), distraction-free reader mode, and full LaTeX authoring (`vimtex`)
 - **File Explorer**: [nvim-tree](https://github.com/nvim-tree/nvim-tree.lua) with NERDTree keybindings

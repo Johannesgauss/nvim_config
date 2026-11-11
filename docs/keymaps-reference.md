@@ -200,6 +200,7 @@ This cheat sheet compiles all keybindings across the configuration, grouped by f
 | `:ToggleVimLook` | Toggles between classic Vim look (16 ANSI colors, `colorscheme vim`, `notermguicolors`) and modern look (`catppuccin-mocha`, truecolor, statusline icons). Choice is persisted across restarts. |
 | `:ToggleTTY` | Toggles Linux console / TTY3 compatible mode (pure-ASCII borders, NERDTree ASCII icons in NvimTree, 16-color highlights, ASCII diagnostic signs). Choice is persisted across restarts. |
 | `:CopilotStart` | Validates directory safety whitelist and initializes GitHub Copilot and CopilotChat. |
+| `:Cowabuga [file]` | Sets unity build include file for clangd LSP (e.g. `:Cowabuga unit.c` or auto-detection with `:Cowabuga`), saving config outside the repo (`~/.config/clangd/config.yaml`) and suppressing spurious diagnostics / "too many errors". Supports `--status`, `--clear`. |
 | `:DiffviewOpen` | Opens the Git diff split viewer. |
 | `:DiffviewClose` | Closes active Git diff viewer. |
 | `:DiffviewFileHistory` | Opens interactive Git log commit history. |
