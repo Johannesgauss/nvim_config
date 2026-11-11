@@ -47,7 +47,7 @@ fi
 info()    { printf "${BLUE}[INFO]${RESET} %s\n" "$*"; }
 success() { printf "${GREEN}[ OK ]${RESET} %s\n" "$*"; }
 warn()    { printf "${YELLOW}[WARN]${RESET} %s\n" "$*"; }
-error()   { printf "${RED}[ERRO]${RESET} %s\n" "$*" >&2; }
+error()   { printf "${RED}[ERROR]${RESET} %s\n" "$*" >&2; }
 step()    { printf "\n${MAGENTA}${BOLD}==> %s${RESET}\n" "$*"; }
 
 # ==============================================================================
@@ -83,22 +83,22 @@ show_help() {
     cat <<EOF
 ${BOLD}Neovim Config - Universal Installer & Updater${RESET}
 
-${BOLD}Uso / Usage:${RESET}
-  $INSTALLER_BIN_NAME [opções / options]
+${BOLD}Usage:${RESET}
+  $INSTALLER_BIN_NAME [options]
 
-${BOLD}Opções / Options:${RESET}
-  (sem argumentos)      Modo interativo (pergunta opcionais 1 por 1 ou oferece update)
-  -u, --update, update  Atualiza repositório (~/.config/nvim), plugins, parsers e dependências
-  --quick-update        Atualiza apenas o repositório Git e os plugins do Neovim
-  -y, --yes, --all      Modo não-interativo: instala essenciais + TODOS os opcionais
-  --minimal             Modo não-interativo: instala apenas dependências essenciais + config
-  --dry-run             Simula as etapas sem executar alterações no sistema
-  -h, --help            Exibe esta mensagem de ajuda
+${BOLD}Options:${RESET}
+  (no arguments)        Interactive mode (prompts for optionals 1-by-1 or offers update)
+  -u, --update, update  Update repository (~/.config/nvim), plugins, parsers, and dependencies
+  --quick-update        Update Git repository and Neovim plugins only
+  -y, --yes, --all      Non-interactive mode: install essentials + ALL optional dependencies
+  --minimal             Non-interactive mode: install essential dependencies + config only
+  --dry-run             Simulate steps without making changes to the system
+  -h, --help            Display this help message
 
-${BOLD}Exemplos / Examples:${RESET}
-  $INSTALLER_BIN_NAME              # Instalação interativa passo a passo
-  $INSTALLER_BIN_NAME --update     # Atualiza a configuração, plugins e ferramentas
-  $INSTALLER_BIN_NAME --all        # Instala tudo automaticamente sem perguntar
+${BOLD}Examples:${RESET}
+  $INSTALLER_BIN_NAME              # Interactive step-by-step installation
+  $INSTALLER_BIN_NAME --update     # Update configuration, plugins, and tools
+  $INSTALLER_BIN_NAME --all        # Install everything automatically without prompts
 EOF
 }
 
@@ -125,7 +125,7 @@ parse_args() {
                 exit 0
                 ;;
             *)
-                warn "Opção desconhecida ignorada: $1"
+                warn "Unknown option ignored: $1"
                 ;;
         esac
         shift
@@ -174,9 +174,9 @@ ask_yes_no() {
             ans="$(printf "%s" "$default" | tr '[:upper:]' '[:lower:]')"
         fi
         case "$ans" in
-            s|sim|y|yes|1) return 0 ;;
-            n|nao|não|no|0) return 1 ;;
-            *) printf "${YELLOW}  Por favor, responda 's' (sim) ou 'n' (não).${RESET}\n" ;;
+            y|yes|s|sim|1) return 0 ;;
+            n|no|nao|não|0) return 1 ;;
+            *) printf "${YELLOW}  Please answer 'y' (yes) or 'n' (no).${RESET}\n" ;;
         esac
     done
 }
@@ -406,13 +406,13 @@ prompt_existing_installation_mode() {
         local origin_url
         origin_url="$(git -C "$NVIM_CONFIG_DIR" remote get-url origin 2>/dev/null || echo "")"
         if [[ "$origin_url" == *"nvim_config"* ]]; then
-            printf "\n${GREEN}${BOLD}Configuração do Neovim já detectada em:${RESET} %s\n" "$NVIM_CONFIG_DIR"
-            printf "O que você deseja fazer?\n"
-            printf "  ${BOLD}1)${RESET} Atualizar tudo (repositório, plugins, parsers e manter/atualizar dependências) ${DIM}[Padrão]${RESET}\n"
-            printf "  ${BOLD}2)${RESET} Instalação completa / Escolher dependências opcionais 1 por 1\n"
-            printf "  ${BOLD}3)${RESET} Atualização rápida (apenas git pull + atualizar plugins do Neovim)\n"
+            printf "\n${GREEN}${BOLD}Neovim configuration already detected at:${RESET} %s\n" "$NVIM_CONFIG_DIR"
+            printf "What would you like to do?\n"
+            printf "  ${BOLD}1)${RESET} Update all (repository, plugins, parsers, and keep/update dependencies) ${DIM}[Default]${RESET}\n"
+            printf "  ${BOLD}2)${RESET} Full installation / Choose optional dependencies 1-by-1\n"
+            printf "  ${BOLD}3)${RESET} Quick update (git pull + update Neovim plugins only)\n"
             local choice
-            choice="$(read_tty "${CYAN}?${RESET} Escolha uma opção ${DIM}[1/2/3]${RESET}: ")"
+            choice="$(read_tty "${CYAN}?${RESET} Choose an option ${DIM}[1/2/3]${RESET}: ")"
             choice="$(printf "%s" "$choice" | tr -d '[:space:]')"
             case "$choice" in
                 2) MODE="interactive" ;;
@@ -438,13 +438,13 @@ ask_optional_dependencies() {
         command -v claude >/dev/null 2>&1 && OPT_CLAUDE=1
         command -v ollama >/dev/null 2>&1 && OPT_OLLAMA=1
 
-        if ! ask_yes_no "Deseja revisar/instalar pacotes opcionais adicionais 1 por 1 durante este update?" "N"; then
+        if ! ask_yes_no "Do you want to review/install additional optional packages 1-by-1 during this update?" "N"; then
             return
         fi
     fi
 
     if [ "$MINIMAL_ONLY" -eq 1 ]; then
-        info "Modo minimalista selecionado: pulando pacotes opcionais."
+        info "Minimal mode selected: skipping optional packages."
         return
     fi
 
@@ -460,73 +460,73 @@ ask_optional_dependencies() {
         return
     fi
 
-    step "Seleção de Dependências Opcionais (1 por 1)"
-    printf "As dependências essenciais (${BOLD}Neovim >= 0.10, Git, GCC/Clang, Make, tree-sitter CLI, ripgrep, fd, Node.js, Python 3${RESET})\n"
-    printf "serão instaladas automaticamente.\n\n"
-    printf "Responda abaixo sobre cada pacote opcional. ${BOLD}A instalação começará somente após todas as perguntas.${RESET}\n\n"
+    step "Optional Dependencies Selection (1 by 1)"
+    printf "Essential dependencies (${BOLD}Neovim >= 0.10, Git, GCC/Clang, Make, tree-sitter CLI, ripgrep, fd, Node.js, Python 3${RESET})\n"
+    printf "will be installed automatically.\n\n"
+    printf "Please answer below for each optional package. ${BOLD}Installation will begin only after all questions.${RESET}\n\n"
 
     # 1. Lazygit
-    if ask_yes_no "[1/8] Instalar Lazygit (Interface Git interativa em tela cheia via <leader>gg)?" "Y"; then
+    if ask_yes_no "[1/8] Install Lazygit (Interactive fullscreen Git TUI via <leader>gg)?" "Y"; then
         OPT_LAZYGIT=1
     fi
 
     # 2. Rust & Cargo
-    if ask_yes_no "[2/8] Instalar Rust, Cargo & rust-analyzer (Desenvolvimento Rust e LSP)?" "Y"; then
+    if ask_yes_no "[2/8] Install Rust, Cargo & rust-analyzer (Rust development and LSP)?" "Y"; then
         OPT_RUST=1
     fi
 
     # 3. GDB / Debugger
-    if ask_yes_no "[3/8] Instalar GDB / LLDB Debugger (Debug rápido no terminal via <leader>db)?" "Y"; then
+    if ask_yes_no "[3/8] Install GDB / LLDB Debugger (Quick terminal debug via <leader>db)?" "Y"; then
         OPT_GDB=1
     fi
 
     # 4. LaTeX & Zathura
-    if ask_yes_no "[4/8] Instalar Suíte LaTeX (TeXLive + latexmk + Zathura PDF preview para VimTeX)?" "N"; then
+    if ask_yes_no "[4/8] Install LaTeX Suite (TeXLive + latexmk + Zathura PDF preview for VimTeX)?" "N"; then
         OPT_LATEX=1
     fi
 
     # 5. Nerd Font
-    if ask_yes_no "[5/8] Instalar JetBrains Mono Nerd Font (Ícones para statusline, NvimTree e Telescope)?" "Y"; then
+    if ask_yes_no "[5/8] Install JetBrains Mono Nerd Font (Icons for statusline, NvimTree, and Telescope)?" "Y"; then
         OPT_NERDFONT=1
     fi
 
     # 6. Google Antigravity CLI (agy)
-    if ask_yes_no "[6/8] Instalar / Configurar Google Antigravity CLI ('agy' - Agente IA no painel <leader>ai)?" "N"; then
+    if ask_yes_no "[6/8] Install / Configure Google Antigravity CLI ('agy' - AI Agent in <leader>ai panel)?" "N"; then
         OPT_AGY=1
     fi
 
     # 7. Claude Code CLI (claude)
-    if ask_yes_no "[7/8] Instalar Claude Code CLI ('claude' - Assistente IA no painel <leader>ci)?" "N"; then
+    if ask_yes_no "[7/8] Install Claude Code CLI ('claude' - AI Assistant in <leader>ci panel)?" "N"; then
         OPT_CLAUDE=1
     fi
 
     # 8. Ollama
-    if ask_yes_no "[8/8] Instalar Ollama ('ollama' - Modelos LLM locais offline para autocompletar <C-y>)?" "N"; then
+    if ask_yes_no "[8/8] Install Ollama ('ollama' - Local offline LLM models for <C-y> autocomplete)?" "N"; then
         OPT_OLLAMA=1
     fi
 }
 
 print_plan_summary() {
-    step "Resumo do Plano de Execução"
+    step "Execution Plan Summary"
     local sys_extra=""
     [ "$OS_FAMILY" = "macos" ] && sys_extra=" macOS ${MACOS_VERSION}"
-    printf "  • ${BOLD}Sistema Detectado:${RESET}     %s (%s / %s%s)\n" "$OS_DISTRO" "$OS_FAMILY" "$ARCH_NORM" "$sys_extra"
-    printf "  • ${BOLD}Gerenciador Pacotes:${RESET}   %s\n" "$PKG_MGR"
-    printf "  • ${BOLD}Diretório Config:${RESET}      %s\n" "$NVIM_CONFIG_DIR"
+    printf "  • ${BOLD}Detected System:${RESET}      %s (%s / %s%s)\n" "$OS_DISTRO" "$OS_FAMILY" "$ARCH_NORM" "$sys_extra"
+    printf "  • ${BOLD}Package Manager:${RESET}      %s\n" "$PKG_MGR"
+    printf "  • ${BOLD}Config Directory:${RESET}     %s\n" "$NVIM_CONFIG_DIR"
     if [ "$OS_FAMILY" != "windows" ]; then
-        printf "  • ${BOLD}Script em PATH:${RESET}        %s\n" "$INSTALLER_BIN_PATH"
+        printf "  • ${BOLD}Script in PATH:${RESET}       %s\n" "$INSTALLER_BIN_PATH"
     fi
-    printf "  • ${BOLD}Pacotes Essenciais:${RESET}    nvim, git, cc/make, tree-sitter, rg, fd, node/npm, python3\n"
+    printf "  • ${BOLD}Essential Packages:${RESET}   nvim, git, cc/make, tree-sitter, rg, fd, node/npm, python3\n"
     if [ "$MODE" != "quick-update" ]; then
-        printf "  • ${BOLD}Opcionais Escolhidos:${RESET}\n"
-        printf "      - Lazygit:               %s\n" "$([ "$OPT_LAZYGIT" -eq 1 ] && echo "SIM" || echo "não")"
-        printf "      - Rust & Cargo:          %s\n" "$([ "$OPT_RUST" -eq 1 ] && echo "SIM" || echo "não")"
-        printf "      - GDB / Debugger:        %s\n" "$([ "$OPT_GDB" -eq 1 ] && echo "SIM" || echo "não")"
-        printf "      - LaTeX & Zathura:       %s\n" "$([ "$OPT_LATEX" -eq 1 ] && echo "SIM" || echo "não")"
-        printf "      - JetBrains Nerd Font:   %s\n" "$([ "$OPT_NERDFONT" -eq 1 ] && echo "SIM" || echo "não")"
-        printf "      - Antigravity CLI (agy): %s\n" "$([ "$OPT_AGY" -eq 1 ] && echo "SIM" || echo "não")"
-        printf "      - Claude Code CLI:       %s\n" "$([ "$OPT_CLAUDE" -eq 1 ] && echo "SIM" || echo "não")"
-        printf "      - Ollama (Local LLM):    %s\n" "$([ "$OPT_OLLAMA" -eq 1 ] && echo "SIM" || echo "não")"
+        printf "  • ${BOLD}Selected Optionals:${RESET}\n"
+        printf "      - Lazygit:               %s\n" "$([ "$OPT_LAZYGIT" -eq 1 ] && echo "YES" || echo "no")"
+        printf "      - Rust & Cargo:          %s\n" "$([ "$OPT_RUST" -eq 1 ] && echo "YES" || echo "no")"
+        printf "      - GDB / Debugger:        %s\n" "$([ "$OPT_GDB" -eq 1 ] && echo "YES" || echo "no")"
+        printf "      - LaTeX & Zathura:       %s\n" "$([ "$OPT_LATEX" -eq 1 ] && echo "YES" || echo "no")"
+        printf "      - JetBrains Nerd Font:   %s\n" "$([ "$OPT_NERDFONT" -eq 1 ] && echo "YES" || echo "no")"
+        printf "      - Antigravity CLI (agy): %s\n" "$([ "$OPT_AGY" -eq 1 ] && echo "YES" || echo "no")"
+        printf "      - Claude Code CLI:       %s\n" "$([ "$OPT_CLAUDE" -eq 1 ] && echo "YES" || echo "no")"
+        printf "      - Ollama (Local LLM):    %s\n" "$([ "$OPT_OLLAMA" -eq 1 ] && echo "YES" || echo "no")"
     fi
     printf "\n"
 }
@@ -539,11 +539,11 @@ setup_macos_environment() {
         return
     fi
 
-    info "Verificando ambiente macOS ($ARCH_NORM, macOS ${MACOS_VERSION:-unknown})..."
+    info "Checking macOS environment ($ARCH_NORM, macOS ${MACOS_VERSION:-unknown})..."
 
     # Ensure Xcode Command Line Tools (provides clang, make, git, lldb)
     if ! xcode-select -p >/dev/null 2>&1; then
-        warn "Xcode Command Line Tools não encontrado. Solicitando instalação..."
+        warn "Xcode Command Line Tools not found. Requesting installation..."
         if [ "$DRY_RUN" -eq 0 ]; then
             xcode-select --install 2>/dev/null || true
         fi
@@ -552,10 +552,10 @@ setup_macos_environment() {
     ensure_local_paths
 
     if ! command -v brew >/dev/null 2>&1 && ! command -v port >/dev/null 2>&1; then
-        info "Homebrew/MacPorts não encontrado. Instalando Homebrew..."
+        info "Homebrew/MacPorts not found. Installing Homebrew..."
         if [ "$DRY_RUN" -eq 0 ]; then
             NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || \
-                warn "Homebrew não pôde ser instalado (comum em macOS x86_64 muito antigo); usaremos binários pré-compilados."
+                warn "Homebrew could not be installed (common on older macOS x86_64); using pre-compiled binaries."
             ensure_local_paths
         fi
     fi
@@ -568,11 +568,11 @@ install_nvim_binary_fallback() {
     local cur_ver
     cur_ver="$(get_nvim_version)"
     if version_ge "$cur_ver" "0.10.0"; then
-        success "Neovim v$cur_ver já atende ao requisito (>= 0.10.0)."
+        success "Neovim v$cur_ver already satisfies requirement (>= 0.10.0)."
         return 0
     fi
 
-    info "Instalando Neovim (>= 0.10.0) oficial pré-compilado em ~/.local..."
+    info "Installing official pre-compiled Neovim (>= 0.10.0) into ~/.local..."
     if [ "$DRY_RUN" -eq 1 ]; then
         return 0
     fi
@@ -605,9 +605,9 @@ install_nvim_binary_fallback() {
                 xattr -cr "$HOME/.local/share/nvim-release" 2>/dev/null || true
             fi
             ln -sf "$HOME/.local/share/nvim-release/bin/nvim" "$LOCAL_BIN_DIR/nvim"
-            success "Neovim $(get_nvim_version) instalado em $LOCAL_BIN_DIR/nvim"
+            success "Neovim $(get_nvim_version) installed into $LOCAL_BIN_DIR/nvim"
         else
-            warn "Não foi possível baixar o binário oficial do Neovim de $url"
+            warn "Could not download official Neovim binary from $url"
         fi
     fi
     rm -rf "$tmp_dir"
@@ -617,11 +617,11 @@ install_treesitter_binary_fallback() {
     local cur_ver
     cur_ver="$(get_treesitter_version)"
     if version_ge "$cur_ver" "0.25.0"; then
-        success "tree-sitter CLI v$cur_ver já instalado (>= 0.25.0)."
+        success "tree-sitter CLI v$cur_ver already installed (>= 0.25.0)."
         return 0
     fi
 
-    info "Instalando tree-sitter CLI (v0.25+) em $LOCAL_BIN_DIR/tree-sitter..."
+    info "Installing tree-sitter CLI (v0.25+) into $LOCAL_BIN_DIR/tree-sitter..."
     if [ "$DRY_RUN" -eq 1 ]; then
         return 0
     fi
@@ -658,17 +658,17 @@ install_treesitter_binary_fallback() {
                     xattr -cr "$LOCAL_BIN_DIR/tree-sitter" 2>/dev/null || true
                 fi
             fi
-            success "tree-sitter CLI $(get_treesitter_version) instalado em $LOCAL_BIN_DIR"
+            success "tree-sitter CLI $(get_treesitter_version) installed into $LOCAL_BIN_DIR"
             return 0
         fi
     fi
 
     # Fallback via npm or cargo
     if command -v npm >/dev/null 2>&1; then
-        info "Tentando instalar tree-sitter-cli via npm..."
+        info "Attempting to install tree-sitter-cli via npm..."
         npm install -g tree-sitter-cli --prefix "$HOME/.local" >/dev/null 2>&1 || run_priv npm install -g tree-sitter-cli >/dev/null 2>&1 || true
     elif command -v cargo >/dev/null 2>&1; then
-        info "Tentando instalar tree-sitter-cli via cargo..."
+        info "Attempting to install tree-sitter-cli via cargo..."
         cargo install tree-sitter-cli >/dev/null 2>&1 || true
     fi
 }
@@ -681,7 +681,7 @@ install_node_binary_fallback() {
         return 0
     fi
 
-    info "Node.js / npm não detectado; instalando Node.js LTS pré-compilado em ~/.local..."
+    info "Node.js / npm not detected; installing pre-compiled Node.js LTS into ~/.local..."
     local node_ver="v20.18.1"
     local node_plat=""
     if [ "$OS_FAMILY" = "linux" ] && [ "$ARCH_NORM" = "x86_64" ]; then
@@ -705,7 +705,7 @@ install_node_binary_fallback() {
             ln -sf "$HOME/.local/share/node-lts/bin/node" "$LOCAL_BIN_DIR/node"
             ln -sf "$HOME/.local/share/node-lts/bin/npm" "$LOCAL_BIN_DIR/npm"
             ln -sf "$HOME/.local/share/node-lts/bin/npx" "$LOCAL_BIN_DIR/npx"
-            success "Node.js $(node --version 2>/dev/null) instalado em $LOCAL_BIN_DIR"
+            success "Node.js $(node --version 2>/dev/null) installed into $LOCAL_BIN_DIR"
         fi
         rm -rf "$tmp_dir"
     fi
@@ -724,7 +724,7 @@ install_rg_fd_fallbacks() {
 
     # Fallback for ripgrep (rg) if missing (e.g. older macOS x86_64 or minimal Linux)
     if ! command -v rg >/dev/null 2>&1; then
-        info "Instalando ripgrep (rg) via binário pré-compilado do GitHub..."
+        info "Installing ripgrep (rg) via pre-compiled GitHub binary..."
         local rg_ver="14.1.1"
         local rg_target=""
         if [ "$OS_FAMILY" = "linux" ] && [ "$ARCH_NORM" = "x86_64" ]; then
@@ -748,7 +748,7 @@ install_rg_fd_fallbacks() {
                 if [ "$OS_FAMILY" = "macos" ] && command -v xattr >/dev/null 2>&1; then
                     xattr -cr "$LOCAL_BIN_DIR/rg" 2>/dev/null || true
                 fi
-                success "ripgrep instalado em $LOCAL_BIN_DIR/rg"
+                success "ripgrep installed into $LOCAL_BIN_DIR/rg"
             fi
             rm -rf "$tmp_dir"
         fi
@@ -756,7 +756,7 @@ install_rg_fd_fallbacks() {
 
     # Fallback for fd if still missing
     if ! command -v fd >/dev/null 2>&1; then
-        info "Instalando fd via binário pré-compilado do GitHub..."
+        info "Installing fd via pre-compiled GitHub binary..."
         local fd_ver="v10.2.0"
         local fd_target=""
         if [ "$OS_FAMILY" = "linux" ] && [ "$ARCH_NORM" = "x86_64" ]; then
@@ -780,7 +780,7 @@ install_rg_fd_fallbacks() {
                 if [ "$OS_FAMILY" = "macos" ] && command -v xattr >/dev/null 2>&1; then
                     xattr -cr "$LOCAL_BIN_DIR/fd" 2>/dev/null || true
                 fi
-                success "fd instalado em $LOCAL_BIN_DIR/fd"
+                success "fd installed into $LOCAL_BIN_DIR/fd"
             fi
             rm -rf "$tmp_dir"
         fi
@@ -791,11 +791,11 @@ install_rg_fd_fallbacks() {
 # Essential Dependencies Installation Across All Operating Systems
 # ==============================================================================
 install_essential_dependencies() {
-    step "Instalando Dependências Essenciais ($OS_DISTRO / $PKG_MGR)"
+    step "Installing Essential Dependencies ($OS_DISTRO / $PKG_MGR)"
 
     case "$PKG_MGR" in
         emerge)
-            info "Gentoo Linux detectado. Instalando pacotes essenciais via Portage (emerge --noreplace)..."
+            info "Gentoo Linux detected. Installing essential packages via Portage (emerge --noreplace)..."
             run_priv emerge --noreplace --quiet-build=y \
                 app-editors/neovim \
                 dev-vcs/git \
@@ -808,19 +808,19 @@ install_essential_dependencies() {
                 net-misc/curl \
                 app-arch/unzip \
                 app-arch/tar \
-                app-arch/gzip || warn "Alguns pacotes do emerge retornaram aviso; verificando binários..."
+                app-arch/gzip || warn "Some emerge packages returned warnings; verifying binaries..."
             run_priv emerge --noreplace dev-util/tree-sitter-cli 2>/dev/null || true
             ;;
 
         pacman)
-            info "Arch Linux / derivado detectado. Instalando pacotes via pacman..."
+            info "Arch Linux / derivative detected. Installing packages via pacman..."
             run_priv pacman -Sy --needed --noconfirm \
                 neovim git base-devel gcc make ripgrep fd nodejs npm python python-pip \
                 tree-sitter-cli curl wget unzip tar gzip
             ;;
 
         apt)
-            info "Debian / Ubuntu / derivado detectado. Instalando pacotes via apt..."
+            info "Debian / Ubuntu / derivative detected. Installing packages via apt..."
             run_priv apt-get update -y
             run_priv env DEBIAN_FRONTEND=noninteractive apt-get install -y \
                 git build-essential gcc g++ make ripgrep fd-find nodejs npm \
@@ -832,7 +832,7 @@ install_essential_dependencies() {
             ;;
 
         dnf|yum)
-            info "Fedora / RHEL / derivado detectado. Instalando pacotes via $PKG_MGR..."
+            info "Fedora / RHEL / derivative detected. Installing packages via $PKG_MGR..."
             run_priv "$PKG_MGR" install -y \
                 neovim git gcc gcc-c++ make ripgrep fd-find nodejs npm \
                 python3 python3-pip curl wget unzip tar gzip
@@ -840,28 +840,28 @@ install_essential_dependencies() {
             ;;
 
         zypper)
-            info "openSUSE detectado. Instalando pacotes via zypper..."
+            info "openSUSE detected. Installing packages via zypper..."
             run_priv zypper --non-interactive install \
                 neovim git gcc gcc-c++ make ripgrep fd nodejs npm \
                 python3 python3-pip tree-sitter curl wget unzip tar gzip
             ;;
 
         xbps)
-            info "Void Linux detectado. Instalando pacotes via xbps-install..."
+            info "Void Linux detected. Installing packages via xbps-install..."
             run_priv xbps-install -Sy \
                 neovim git base-devel gcc make ripgrep fd nodejs \
                 python3 python3-pip tree-sitter curl wget unzip tar gzip
             ;;
 
         apk)
-            info "Alpine Linux detectado. Instalando pacotes via apk..."
+            info "Alpine Linux detected. Installing packages via apk..."
             run_priv apk add --no-cache \
                 neovim git build-base gcc g++ make ripgrep fd nodejs npm \
                 python3 py3-pip tree-sitter-cli curl wget unzip tar gzip bash
             ;;
 
         nix)
-            info "NixOS / Nix detectado. Instalando pacotes via nix-env..."
+            info "NixOS / Nix detected. Installing packages via nix-env..."
             nix-env -iA \
                 nixpkgs.neovim nixpkgs.git nixpkgs.gcc nixpkgs.gnumake \
                 nixpkgs.ripgrep nixpkgs.fd nixpkgs.nodejs nixpkgs.python3 \
@@ -882,29 +882,29 @@ install_essential_dependencies() {
 
         brew)
             setup_macos_environment
-            info "macOS ($ARCH_NORM, v$MACOS_VERSION) detectado. Instalando pacotes essenciais via Homebrew..."
+            info "macOS ($ARCH_NORM, v$MACOS_VERSION) detected. Installing essential packages via Homebrew..."
             brew install neovim git ripgrep fd node python tree-sitter curl unzip || \
-                warn "Homebrew reportou aviso (comum em versões mais antigas do macOS x86_64). Ativando fallbacks binários..."
+                warn "Homebrew reported warnings (common on older macOS x86_64). Enabling binary fallbacks..."
             ;;
 
         port)
             setup_macos_environment
-            info "macOS ($ARCH_NORM, v$MACOS_VERSION) detectado. Instalando pacotes essenciais via MacPorts..."
+            info "macOS ($ARCH_NORM, v$MACOS_VERSION) detected. Installing essential packages via MacPorts..."
             run_priv port -N install neovim git ripgrep fd nodejs20 npm10 python312 curl unzip || true
             ;;
 
         pkg)
-            info "FreeBSD detectado. Instalando pacotes via pkg..."
+            info "FreeBSD detected. Installing packages via pkg..."
             run_priv pkg install -y neovim git gcc gmake ripgrep fd-find node npm python3 tree-sitter curl unzip
             ;;
 
         pkg_add)
-            info "OpenBSD detectado. Instalando pacotes via pkg_add..."
+            info "OpenBSD detected. Installing packages via pkg_add..."
             run_priv pkg_add neovim git gmake ripgrep fd node python3 curl unzip
             ;;
 
         winget)
-            info "Windows detectado. Instalando pacotes essenciais via winget..."
+            info "Windows detected. Installing essential packages via winget..."
             local winget_bin="winget"
             command -v winget.exe >/dev/null 2>&1 && winget_bin="winget.exe"
             "$winget_bin" install --id Neovim.Neovim -e --accept-source-agreements --accept-package-agreements || true
@@ -918,17 +918,17 @@ install_essential_dependencies() {
             ;;
 
         scoop)
-            info "Windows detectado. Instalando pacotes essenciais via Scoop..."
+            info "Windows detected. Installing essential packages via Scoop..."
             scoop install neovim git gcc make ripgrep fd nodejs-lts python tree-sitter
             ;;
 
         choco)
-            info "Windows detectado. Instalando pacotes essenciais via Chocolatey..."
+            info "Windows detected. Installing essential packages via Chocolatey..."
             choco install -y neovim git mingw make ripgrep fd nodejs-lts python3
             ;;
 
         msys-pacman)
-            info "MSYS2 detectado. Instalando pacotes essenciais via pacman..."
+            info "MSYS2 detected. Installing essential packages via pacman..."
             pacman -S --needed --noconfirm \
                 mingw-w64-x86_64-neovim git base-devel mingw-w64-x86_64-gcc make \
                 mingw-w64-x86_64-ripgrep mingw-w64-x86_64-fd mingw-w64-x86_64-nodejs \
@@ -941,7 +941,7 @@ install_essential_dependencies() {
     install_node_binary_fallback
     install_treesitter_binary_fallback
     install_rg_fd_fallbacks
-    success "Dependências essenciais instaladas e verificadas!"
+    success "Essential dependencies installed and verified!"
 }
 
 # ==============================================================================
@@ -949,10 +949,10 @@ install_essential_dependencies() {
 # ==============================================================================
 install_opt_lazygit() {
     [ "$OPT_LAZYGIT" -ne 1 ] && return 0
-    step "Instalando Opcional [1/8]: Lazygit"
+    step "Installing Optional [1/8]: Lazygit"
 
     if [ "$DRY_RUN" -eq 1 ]; then
-        info "[DRY-RUN] Instalaria lazygit"
+        info "[DRY-RUN] Would install lazygit"
         return 0
     fi
 
@@ -981,7 +981,7 @@ install_opt_lazygit() {
 
     # Universal GitHub release binary fallback (POSIX sed instead of GNU grep -P for macOS/BSD compatibility)
     if ! command -v lazygit >/dev/null 2>&1; then
-        info "Baixando binário oficial do Lazygit via GitHub Releases..."
+        info "Downloading official Lazygit binary via GitHub Releases..."
         local lg_ver
         lg_ver="$(curl -fsSL "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" 2>/dev/null | sed -n 's/.*"tag_name": *"v\([^"]*\)".*/\1/p' | head -n1)"
         [ -z "$lg_ver" ] && lg_ver="0.44.1"
@@ -1011,25 +1011,25 @@ install_opt_lazygit() {
     fi
 
     if command -v lazygit >/dev/null 2>&1; then
-        success "Lazygit instalado com sucesso!"
+        success "Lazygit installed successfully!"
     else
-        warn "Não foi possível instalar o Lazygit automaticamente."
+        warn "Could not install Lazygit automatically."
     fi
 }
 
 install_opt_rust() {
     [ "$OPT_RUST" -ne 1 ] && return 0
-    step "Instalando Opcional [2/8]: Rust, Cargo & rust-analyzer"
+    step "Installing Optional [2/8]: Rust, Cargo & rust-analyzer"
 
     if [ "$DRY_RUN" -eq 1 ]; then
-        info "[DRY-RUN] Instalaria rustc, cargo e rust-analyzer"
+        info "[DRY-RUN] Would install rustc, cargo, and rust-analyzer"
         return 0
     fi
 
     if ! command -v cargo >/dev/null 2>&1; then
         case "$PKG_MGR" in
             emerge)
-                info "Gentoo: Instalando Rust (dev-lang/rust-bin ou rustup)..."
+                info "Gentoo: Installing Rust (dev-lang/rust-bin or rustup)..."
                 run_priv emerge --noreplace dev-lang/rust-bin 2>/dev/null || \
                 run_priv emerge --noreplace virtual/rust 2>/dev/null || \
                 (curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y)
@@ -1048,7 +1048,7 @@ install_opt_rust() {
                 choco install -y rust || true
                 ;;
             *)
-                info "Instalando Rust toolchain oficial via rustup..."
+                info "Installing official Rust toolchain via rustup..."
                 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
                 ;;
         esac
@@ -1063,16 +1063,16 @@ install_opt_rust() {
     if command -v cargo >/dev/null 2>&1; then
         success "Rust & Cargo ($(cargo --version 2>/dev/null)) prontos!"
     else
-        warn "Rust/Cargo requer reinicialização do terminal para atualizar o PATH."
+        warn "Rust/Cargo requires terminal restart to update PATH."
     fi
 }
 
 install_opt_gdb() {
     [ "$OPT_GDB" -ne 1 ] && return 0
-    step "Instalando Opcional [3/8]: GDB / LLDB Debugger"
+    step "Installing Optional [3/8]: GDB / LLDB Debugger"
 
     if [ "$DRY_RUN" -eq 1 ]; then
-        info "[DRY-RUN] Instalaria gdb / lldb"
+        info "[DRY-RUN] Would install gdb / lldb"
         return 0
     fi
 
@@ -1089,7 +1089,7 @@ install_opt_gdb() {
             if [ "$ARCH_NORM" = "x86_64" ]; then
                 brew install gdb || true
             else
-                info "macOS ARM64: LLDB já está incluído via Xcode Command Line Tools (suportado em <leader>db)."
+                info "macOS ARM64: LLDB is already included via Xcode Command Line Tools (supported in <leader>db)."
                 brew install llvm 2>/dev/null || true
             fi
             ;;
@@ -1108,10 +1108,10 @@ install_opt_gdb() {
 
 install_opt_latex() {
     [ "$OPT_LATEX" -ne 1 ] && return 0
-    step "Instalando Opcional [4/8]: Suíte LaTeX (TeXLive, latexmk & Zathura)"
+    step "Installing Optional [4/8]: LaTeX Suite (TeXLive, latexmk & Zathura)"
 
     if [ "$DRY_RUN" -eq 1 ]; then
-        info "[DRY-RUN] Instalaria texlive, latexmk e zathura"
+        info "[DRY-RUN] Would install texlive, latexmk, and zathura"
         return 0
     fi
 
@@ -1167,26 +1167,26 @@ install_opt_latex() {
             choco install -y miktex sumatrapdf || true
             ;;
     esac
-    success "Configuração de pacotes LaTeX concluída!"
+    success "LaTeX package configuration completed!"
 }
 
 install_opt_nerdfont() {
     [ "$OPT_NERDFONT" -ne 1 ] && return 0
-    step "Instalando Opcional [5/8]: JetBrains Mono Nerd Font"
+    step "Installing Optional [5/8]: JetBrains Mono Nerd Font"
 
     if [ "$DRY_RUN" -eq 1 ]; then
-        info "[DRY-RUN] Instalaria JetBrains Mono Nerd Font"
+        info "[DRY-RUN] Would install JetBrains Mono Nerd Font"
         return 0
     fi
 
     if [ "$PKG_MGR" = "pacman" ]; then
         if run_priv pacman -S --needed --noconfirm ttf-jetbrains-mono-nerd 2>/dev/null; then
-            success "JetBrains Mono Nerd Font instalada via pacman!"
+            success "JetBrains Mono Nerd Font installed via pacman!"
             return 0
         fi
     elif [ "$PKG_MGR" = "brew" ]; then
         if brew install --cask font-jetbrains-mono-nerd-font 2>/dev/null; then
-            success "JetBrains Mono Nerd Font instalada via Homebrew!"
+            success "JetBrains Mono Nerd Font installed via Homebrew!"
             return 0
         fi
     elif [ "$PKG_MGR" = "winget" ]; then
@@ -1207,76 +1207,76 @@ install_opt_nerdfont() {
     tmp_dir="$(mktemp -d 2>/dev/null || mktemp -d -t 'nerdfont-install')"
     local zip_url="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip"
 
-    info "Baixando JetBrainsMono Nerd Font para $font_dir..."
+    info "Downloading JetBrainsMono Nerd Font to $font_dir..."
     if curl -fsSL "$zip_url" -o "$tmp_dir/JetBrainsMono.zip" 2>/dev/null; then
         unzip -qo "$tmp_dir/JetBrainsMono.zip" -d "$font_dir"
         if command -v fc-cache >/dev/null 2>&1; then
             fc-cache -f "$font_dir" >/dev/null 2>&1 || true
         fi
-        success "JetBrains Mono Nerd Font instalada em $font_dir!"
+        success "JetBrains Mono Nerd Font installed into $font_dir!"
     else
-        warn "Não foi possível baixar a Nerd Font automaticamente."
+        warn "Could not download Nerd Font automatically."
     fi
     rm -rf "$tmp_dir"
 }
 
 install_opt_agy() {
     [ "$OPT_AGY" -ne 1 ] && return 0
-    step "Verificando Opcional [6/8]: Google Antigravity CLI (agy)"
+    step "Checking Optional [6/8]: Google Antigravity CLI (agy)"
 
     if [ "$DRY_RUN" -eq 1 ]; then
-        info "[DRY-RUN] Verificaria/instalaria Antigravity CLI (agy)"
+        info "[DRY-RUN] Would check/install Antigravity CLI (agy)"
         return 0
     fi
 
     if command -v agy >/dev/null 2>&1; then
-        success "Google Antigravity CLI (agy) já está instalado em $(command -v agy)!"
+        success "Google Antigravity CLI (agy) is already installed at $(command -v agy)!"
     elif command -v npm >/dev/null 2>&1; then
-        info "Verificando pacote Antigravity CLI..."
+        info "Checking Antigravity CLI package..."
         npm install -g @google/antigravity-cli --prefix "$HOME/.local" 2>/dev/null || \
-            info "Para instalar o Antigravity CLI manualmente, consulte a documentação oficial do Google Antigravity."
+            info "To install the Antigravity CLI manually, please consult Google Antigravity official documentation."
     fi
 }
 
 install_opt_claude() {
     [ "$OPT_CLAUDE" -ne 1 ] && return 0
-    step "Instalando Opcional [7/8]: Claude Code CLI (claude)"
+    step "Installing Optional [7/8]: Claude Code CLI (claude)"
 
     if [ "$DRY_RUN" -eq 1 ]; then
-        info "[DRY-RUN] Instalaria @anthropic-ai/claude-code via npm"
+        info "[DRY-RUN] Would install @anthropic-ai/claude-code via npm"
         return 0
     fi
 
     if command -v claude >/dev/null 2>&1; then
-        success "Claude Code CLI já está instalado em $(command -v claude)!"
+        success "Claude Code CLI is already installed at $(command -v claude)!"
         return 0
     fi
 
     if command -v npm >/dev/null 2>&1; then
-        info "Instalando @anthropic-ai/claude-code via npm..."
+        info "Installing @anthropic-ai/claude-code via npm..."
         npm install -g @anthropic-ai/claude-code --prefix "$HOME/.local" 2>/dev/null || \
         run_priv npm install -g @anthropic-ai/claude-code || \
-        warn "Falha ao instalar @anthropic-ai/claude-code via npm."
+        warn "Failed to install @anthropic-ai/claude-code via npm."
     else
-        warn "npm não encontrado para instalar o Claude Code CLI."
+        warn "npm not found to install Claude Code CLI."
     fi
 
     if command -v claude >/dev/null 2>&1; then
-        success "Claude Code CLI instalado com sucesso!"
+        success "Claude Code CLI installed successfully!"
     fi
 }
 
 install_opt_ollama() {
     [ "$OPT_OLLAMA" -ne 1 ] && return 0
-    step "Instalando Opcional [8/8]: Ollama (Local LLM)"
+    step "Installing Optional [8/8]: Ollama (Local LLM)"
 
     if [ "$DRY_RUN" -eq 1 ]; then
-        info "[DRY-RUN] Instalaria Ollama"
+        info "[DRY-RUN] Would install Ollama"
         return 0
     fi
 
     if command -v ollama >/dev/null 2>&1; then
-        success "Ollama já está instalado em $(command -v ollama)!"
+        success "Ollama is already installed at $(command -v ollama)!"
         return 0
     fi
 
@@ -1287,7 +1287,7 @@ install_opt_ollama() {
             elif [ "$PKG_MGR" = "emerge" ]; then
                 run_priv emerge --noreplace app-misc/ollama 2>/dev/null || (curl -fsSL https://ollama.com/install.sh | sh)
             else
-                curl -fsSL https://ollama.com/install.sh | sh || warn "Falha ao instalar Ollama."
+                curl -fsSL https://ollama.com/install.sh | sh || warn "Failed to install Ollama."
             fi
             ;;
         macos)
@@ -1306,7 +1306,7 @@ install_opt_ollama() {
     esac
 
     if command -v ollama >/dev/null 2>&1; then
-        success "Ollama instalado com sucesso!"
+        success "Ollama installed successfully!"
     fi
 }
 
@@ -1314,10 +1314,10 @@ install_opt_ollama() {
 # Clone or Update Repository in ~/.config/nvim (and Windows AppData link)
 # ==============================================================================
 clone_or_update_repo() {
-    step "Configurando Repositório em $NVIM_CONFIG_DIR"
+    step "Setting up Repository at $NVIM_CONFIG_DIR"
 
     if [ "$DRY_RUN" -eq 1 ]; then
-        info "[DRY-RUN] Clonaria ou atualizaria $REPO_URL em $NVIM_CONFIG_DIR"
+        info "[DRY-RUN] Would clone or update $REPO_URL at $NVIM_CONFIG_DIR"
         return 0
     fi
 
@@ -1327,33 +1327,33 @@ clone_or_update_repo() {
         local current_remote
         current_remote="$(git -C "$NVIM_CONFIG_DIR" remote get-url origin 2>/dev/null || echo "")"
         if [[ "$current_remote" == *"nvim_config"* ]]; then
-            info "Repositório nvim_config existente detectado. Atualizando via git pull..."
+            info "Existing nvim_config repository detected. Updating via git pull..."
             git -C "$NVIM_CONFIG_DIR" fetch origin main 2>/dev/null || git -C "$NVIM_CONFIG_DIR" fetch origin 2>/dev/null || true
             if git -C "$NVIM_CONFIG_DIR" pull --rebase --autostash origin main 2>/dev/null; then
-                success "Repositório em $NVIM_CONFIG_DIR atualizado com sucesso!"
+                success "Repository in $NVIM_CONFIG_DIR updated successfully!"
             else
-                warn "Não foi possível fazer pull (ou há commits locais à frente de origin/main); mantendo estado local."
+                warn "Could not pull (or local commits ahead of origin/main); preserving local state."
             fi
         else
             local backup_dir="${NVIM_CONFIG_DIR}.backup.$(date +%Y%m%d_%H%M%S)"
-            warn "Outro repositório Git detectado em $NVIM_CONFIG_DIR ($current_remote)."
+            warn "Another Git repository detected in $NVIM_CONFIG_DIR ($current_remote)."
             info "Fazendo backup para: $backup_dir"
             mv "$NVIM_CONFIG_DIR" "$backup_dir"
             git clone "$REPO_URL" "$NVIM_CONFIG_DIR"
-            success "Repositório clonado em $NVIM_CONFIG_DIR (backup salvo em $backup_dir)!"
+            success "Repository cloned into $NVIM_CONFIG_DIR (backup saved to $backup_dir)!"
         fi
     elif [ -d "$NVIM_CONFIG_DIR" ] && [ -n "$(ls -A "$NVIM_CONFIG_DIR" 2>/dev/null)" ]; then
         local backup_dir="${NVIM_CONFIG_DIR}.backup.$(date +%Y%m%d_%H%M%S)"
-        warn "Diretório existente encontrado em $NVIM_CONFIG_DIR."
+        warn "Existing directory found at $NVIM_CONFIG_DIR."
         info "Fazendo backup seguro para: $backup_dir"
         mv "$NVIM_CONFIG_DIR" "$backup_dir"
         git clone "$REPO_URL" "$NVIM_CONFIG_DIR"
-        success "Repositório clonado em $NVIM_CONFIG_DIR (backup salvo em $backup_dir)!"
+        success "Repository cloned into $NVIM_CONFIG_DIR (backup saved to $backup_dir)!"
     else
         rm -rf "$NVIM_CONFIG_DIR" 2>/dev/null || true
         info "Clonando $REPO_URL em $NVIM_CONFIG_DIR..."
         git clone "$REPO_URL" "$NVIM_CONFIG_DIR"
-        success "Repositório clonado com sucesso em $NVIM_CONFIG_DIR!"
+        success "Repository cloned successfully into $NVIM_CONFIG_DIR!"
     fi
 
     # On Windows (Git Bash / MSYS2 / Cygwin), native Neovim uses $LOCALAPPDATA/nvim
@@ -1372,7 +1372,7 @@ clone_or_update_repo() {
 # Install Script into ~/.local/bin on UNIX Systems & Configure PATH
 # ==============================================================================
 install_self_to_local_bin() {
-    step "Instalando Script Gerenciador em $INSTALLER_BIN_PATH"
+    step "Installing Manager Script into $INSTALLER_BIN_PATH"
 
     if [ "$DRY_RUN" -eq 1 ]; then
         info "[DRY-RUN] Copiaria install.sh para $INSTALLER_BIN_PATH e adicionaria $LOCAL_BIN_DIR ao PATH"
@@ -1385,14 +1385,14 @@ install_self_to_local_bin() {
         cp -f "$NVIM_CONFIG_DIR/install.sh" "$INSTALLER_BIN_PATH"
         chmod +x "$INSTALLER_BIN_PATH"
         chmod +x "$NVIM_CONFIG_DIR/install.sh"
-        success "Script instalado em: $INSTALLER_BIN_PATH"
+        success "Script installed to: $INSTALLER_BIN_PATH"
     elif [ -f "${BASH_SOURCE[0]:-}" ]; then
         cp -f "${BASH_SOURCE[0]}" "$INSTALLER_BIN_PATH"
         chmod +x "$INSTALLER_BIN_PATH"
-        success "Script instalado em: $INSTALLER_BIN_PATH"
+        success "Script installed to: $INSTALLER_BIN_PATH"
     else
         curl -fsSL "$RAW_SCRIPT_URL" -o "$INSTALLER_BIN_PATH" && chmod +x "$INSTALLER_BIN_PATH"
-        success "Script baixado e instalado em: $INSTALLER_BIN_PATH"
+        success "Script downloaded and installed to: $INSTALLER_BIN_PATH"
     fi
 
     # Ensure ~/.local/bin is in user's shell configuration files on UNIX
@@ -1419,7 +1419,7 @@ install_self_to_local_bin() {
 # Bootstrap Neovim Plugins, Treesitter Parsers & Mason Headlessly
 # ==============================================================================
 bootstrap_neovim_headless() {
-    step "Sincronizando Plugins (lazy.nvim) & Gramáticas (Treesitter)"
+    step "Synchronizing Plugins (lazy.nvim) & Grammars (Treesitter)"
 
     if [ "$DRY_RUN" -eq 1 ]; then
         info "[DRY-RUN] Executaria: nvim --headless \"+Lazy! sync\" +qa"
@@ -1427,14 +1427,14 @@ bootstrap_neovim_headless() {
     fi
 
     if ! command -v nvim >/dev/null 2>&1; then
-        warn "Comando 'nvim' não encontrado no PATH atual. Pulando sincronização headless."
+        warn "'nvim' command not found in current PATH. Skipping headless synchronization."
         return 0
     fi
 
-    info "Sincronizando plugins via lazy.nvim (aguarde alguns segundos)..."
+    info "Synchronizing plugins via lazy.nvim (please wait a few seconds)..."
     nvim --headless "+Lazy! sync" +qa >/dev/null 2>&1 || true
 
-    info "Atualizando parsers do Treesitter..."
+    info "Updating Treesitter parsers..."
     nvim --headless "+TSUpdateSync" +qa >/dev/null 2>&1 || true
 
     success "Plugins e parsers do Neovim prontos para uso imediato!"
@@ -1483,11 +1483,11 @@ main() {
     bootstrap_neovim_headless
 
     printf "\n${BOLD}${GREEN}======================================================================${RESET}\n"
-    printf "${BOLD}${GREEN}   Tudo pronto! Instalação / Atualização concluída com sucesso!${RESET}\n"
+    printf "${BOLD}${GREEN}   All set! Installation / Update completed successfully!${RESET}\n"
     printf "${BOLD}${GREEN}======================================================================${RESET}\n\n"
     printf "  • Abra o Neovim digitando:        ${BOLD}nvim${RESET}\n"
-    printf "  • Para atualizar no futuro:       ${BOLD}%s --update${RESET}\n" "$INSTALLER_BIN_NAME"
-    printf "  • Para adicionar novos opcionais: ${BOLD}%s${RESET}\n\n" "$INSTALLER_BIN_NAME"
+    printf "  • To update in the future:      ${BOLD}%s --update${RESET}\n" "$INSTALLER_BIN_NAME"
+    printf "  • To add new optional packages: ${BOLD}%s${RESET}\n\n" "$INSTALLER_BIN_NAME"
 }
 
 main "$@"

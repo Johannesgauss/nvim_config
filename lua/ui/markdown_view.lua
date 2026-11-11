@@ -66,13 +66,13 @@ function M.enable(bufnr, notify)
     end, {
         buffer = bufnr,
         silent = true,
-        desc = "Sair do modo leitor de Markdown",
+        desc = "Exit Markdown reader mode",
     })
 
     vim.b[bufnr].markdown_view_active = true
 
     if notify ~= false then
-        vim.notify("Modo Leitor de Markdown ativado (<leader>mv ou 'q' para sair)", vim.log.levels.INFO)
+        vim.notify("Markdown reader mode enabled (<leader>mv or 'q' to exit)", vim.log.levels.INFO)
     end
 end
 
@@ -111,7 +111,7 @@ function M.disable(bufnr, notify)
     vim.b[bufnr].markdown_view_active = false
 
     if notify ~= false then
-        vim.notify("Modo Leitor de Markdown desativado; edição normal restaurada", vim.log.levels.INFO)
+        vim.notify("Markdown reader mode disabled; normal editing restored", vim.log.levels.INFO)
     end
 end
 
@@ -128,6 +128,6 @@ end
 
 vim.api.nvim_create_user_command("ToggleMarkdownView", function()
     M.toggle()
-end, { desc = "Alternar Modo Leitor de Markdown (Distraction-Free)" })
+end, { desc = "Toggle Markdown Reader Mode (Distraction-Free)" })
 
 return M

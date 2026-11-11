@@ -3,7 +3,7 @@ local agy_buf = nil
 
 function M.resize(target_percent)
   if vim.api.nvim_get_current_buf() ~= agy_buf then
-    vim.notify("O cursor precisa estar no painel do Antigravity para redimensionar!", vim.log.levels.WARN)
+    vim.notify("Cursor must be inside the Antigravity panel to resize!", vim.log.levels.WARN)
     return
   end
   local total_cols = vim.o.columns

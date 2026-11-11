@@ -1,12 +1,12 @@
 return {
     "windwp/nvim-autopairs",
-    event = "InsertEnter", -- Carrega o plugin no exato momento em que você entra no modo de inserção
+    event = "InsertEnter", -- Load the plugin upon entering insert mode
     config = function()
         require("nvim-autopairs").setup({
-            check_ts = true, -- Integração com o Treesitter para evitar fechamentos errados dentro de strings ou comentários
-            disable_filetype = { "TelescopePrompt", "spectre_panel" }, -- Desativa em painéis de busca onde atrapalharia
+            check_ts = true, -- Treesitter integration to avoid faulty closings in strings or comments
+            disable_filetype = { "TelescopePrompt", "spectre_panel" }, -- Disable in search and prompt panels
             fast_wrap = {
-                map = "<M-e>", -- Alt + e para envolver uma palavra existente com parênteses rapidamente
+                map = "<M-e>", -- Alt + e to quickly wrap existing word/characters with pairs
                 chars = { "{", "[", "(", '"', "'" },
                 pattern = [=[[%'%"%)%]%}%s]=],
                 end_key = "$",

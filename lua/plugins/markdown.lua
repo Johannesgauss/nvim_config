@@ -84,7 +84,7 @@ return {
     rm.setup(opts)
 
     vim.keymap.set("n", "<leader>mr", "<cmd>RenderMarkdown toggle<CR>", {
-      desc = "Alternar renderização visual inline de Markdown",
+      desc = "Toggle inline visual Markdown rendering",
     })
   end,
 }

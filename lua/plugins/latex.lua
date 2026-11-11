@@ -113,7 +113,7 @@ local function preview_math_popup()
       local ok = pcall(nabla.popup, { border = "rounded" })
       if ok then return end
     end
-    vim.notify("Nenhuma fórmula LaTeX encontrada sob o cursor", vim.log.levels.WARN)
+    vim.notify("No LaTeX formula found under cursor", vim.log.levels.WARN)
     return
   end
 
@@ -121,19 +121,19 @@ local function preview_math_popup()
   local ok_parser, parser = pcall(require, "nabla.latex")
   local ok_ascii, ascii = pcall(require, "nabla.ascii")
   if not (ok_parser and ok_ascii) then
-    vim.notify("Módulo Nabla não encontrado", vim.log.levels.ERROR)
+    vim.notify("Nabla module not found", vim.log.levels.ERROR)
     return
   end
 
   local succ_p, exp = pcall(parser.parse_all, math_expr)
   if not (succ_p and exp) then
-    vim.notify("Não foi possível analisar fórmula LaTeX: " .. tostring(exp), vim.log.levels.WARN)
+    vim.notify("Unable to parse LaTeX formula: " .. tostring(exp), vim.log.levels.WARN)
     return
   end
 
   local succ_a, g = pcall(ascii.to_ascii, { exp }, 1)
   if not (succ_a and g and tostring(g) ~= "") then
-    vim.notify("Erro ao renderizar visualização 2D da fórmula", vim.log.levels.WARN)
+    vim.notify("Error rendering 2D formula preview", vim.log.levels.WARN)
     return
   end
 
@@ -152,10 +152,10 @@ local function preview_math_popup()
   if winr_float and vim.api.nvim_win_is_valid(winr_float) then
     vim.keymap.set("n", "q", function()
       pcall(vim.api.nvim_win_close, winr_float, true)
-    end, { buffer = bufnr_float, silent = true, desc = "Fechar preview de LaTeX" })
+    end, { buffer = bufnr_float, silent = true, desc = "Close LaTeX preview" })
     vim.keymap.set("n", "<Esc>", function()
       pcall(vim.api.nvim_win_close, winr_float, true)
-    end, { buffer = bufnr_float, silent = true, desc = "Fechar preview de LaTeX" })
+    end, { buffer = bufnr_float, silent = true, desc = "Close LaTeX preview" })
   end
 end
 
@@ -180,26 +180,26 @@ return {
       {
         "<leader>lp",
         preview_math_popup,
-        desc = "LaTeX: Exibir fórmula sob o cursor em popup 2D",
+        desc = "LaTeX: Display formula under cursor in 2D popup",
       },
       {
         "<leader>lv",
         toggle_nabla_virt,
-        desc = "LaTeX: Alternar fórmulas 2D em linhas virtuais no buffer",
+        desc = "LaTeX: Toggle 2D virtual line formulas in buffer",
       },
       {
         "<leader>mp",
         preview_math_popup,
-        desc = "Markdown/LaTeX: Exibir fórmula sob o cursor em popup 2D",
+        desc = "Markdown/LaTeX: Display formula under cursor in 2D popup",
       },
     },
     config = function()
       vim.api.nvim_create_user_command("NablaPopup", preview_math_popup, {
-        desc = "Exibir fórmula LaTeX em popup 2D sob o cursor",
+        desc = "Display LaTeX formula in 2D popup under cursor",
       })
 
       vim.api.nvim_create_user_command("NablaToggle", toggle_nabla_virt, {
-        desc = "Alternar fórmulas LaTeX 2D virtuais",
+        desc = "Toggle 2D virtual LaTeX formulas",
       })
     end,
   },
