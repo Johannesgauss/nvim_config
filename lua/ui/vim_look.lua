@@ -288,15 +288,72 @@ local function apply_tty_plugins(tty)
     end
 end
 
+local function apply_vim_look_highlights()
+    -- Ensure readable 256-color contrast for floats (Ctrl+k), popups, and diffs (<leader>ad)
+    vim.api.nvim_set_hl(0, "SignColumn", { ctermbg = "NONE", bg = "NONE" })
+    vim.api.nvim_set_hl(0, "VertSplit", { ctermfg = 240, ctermbg = "NONE" })
+    vim.api.nvim_set_hl(0, "WinSeparator", { ctermfg = 240, ctermbg = "NONE" })
+
+    -- Floating windows & completion popups (fixes black-on-magenta Pmenu/NormalFloat in `vim` colorscheme)
+    vim.api.nvim_set_hl(0, "NormalFloat", { ctermfg = 252, ctermbg = 235 })
+    vim.api.nvim_set_hl(0, "FloatBorder", { ctermfg = 244, ctermbg = 235 })
+    vim.api.nvim_set_hl(0, "FloatTitle", { ctermfg = 11, ctermbg = 235, bold = true })
+    vim.api.nvim_set_hl(0, "FloatFooter", { ctermfg = 244, ctermbg = 235 })
+    vim.api.nvim_set_hl(0, "Pmenu", { ctermfg = 252, ctermbg = 235 })
+    vim.api.nvim_set_hl(0, "PmenuSel", { ctermfg = 15, ctermbg = 24, bold = true })
+    vim.api.nvim_set_hl(0, "PmenuBorder", { ctermfg = 244, ctermbg = 235 })
+    vim.api.nvim_set_hl(0, "PmenuSbar", { ctermbg = 237 })
+    vim.api.nvim_set_hl(0, "PmenuThumb", { ctermbg = 246 })
+    vim.api.nvim_set_hl(0, "DiagnosticInfo", { ctermfg = 12 })
+
+    -- Eliminate unreadable bright-pink / bright-on-bright groups in `vim` colorscheme
+    vim.api.nvim_set_hl(0, "Constant", { ctermfg = 208 })
+    vim.api.nvim_set_hl(0, "Title", { ctermfg = 11, bold = true })
+    vim.api.nvim_set_hl(0, "Special", { ctermfg = 214 })
+    vim.api.nvim_set_hl(0, "WarningMsg", { ctermfg = 214, bold = true })
+    vim.api.nvim_set_hl(0, "MatchParen", { ctermfg = 15, ctermbg = 24, bold = true })
+    vim.api.nvim_set_hl(0, "SpellBad", { cterm = { underline = true }, ctermbg = "NONE" })
+    vim.api.nvim_set_hl(0, "SpellCap", { cterm = { underline = true }, ctermbg = "NONE" })
+    vim.api.nvim_set_hl(0, "SpellRare", { cterm = { underline = true }, ctermbg = "NONE" })
+    vim.api.nvim_set_hl(0, "SpellLocal", { cterm = { underline = true }, ctermbg = "NONE" })
+
+    -- Diff & Diffview highlights (fixes harsh blue/magenta/cyan/red backgrounds in `vim` colorscheme)
+    vim.api.nvim_set_hl(0, "DiffAdd", { ctermbg = 22 })
+    vim.api.nvim_set_hl(0, "DiffChange", { ctermbg = 236 })
+    vim.api.nvim_set_hl(0, "DiffDelete", { ctermfg = 167, ctermbg = 52 })
+    vim.api.nvim_set_hl(0, "DiffText", { ctermbg = 24, bold = true })
+    vim.api.nvim_set_hl(0, "DiffviewDiffAddAsDelete", { ctermbg = 52 })
+    vim.api.nvim_set_hl(0, "DiffviewDiffDeleteDim", { ctermfg = 240, ctermbg = 234 })
+    vim.api.nvim_set_hl(0, "diffAdded", { ctermfg = 10 })
+    vim.api.nvim_set_hl(0, "diffRemoved", { ctermfg = 9 })
+    vim.api.nvim_set_hl(0, "diffChanged", { ctermfg = 12 })
+    vim.api.nvim_set_hl(0, "DiffviewFilePanelFileName", { ctermfg = 252 })
+    vim.api.nvim_set_hl(0, "DiffviewFilePanelTitle", { ctermfg = 11, bold = true })
+    vim.api.nvim_set_hl(0, "DiffviewFilePanelCounter", { ctermfg = 14, bold = true })
+    vim.api.nvim_set_hl(0, "DiffviewFilePanelSelected", { ctermfg = 14, bold = true })
+    vim.api.nvim_set_hl(0, "DiffviewDim1", { ctermfg = 244 })
+    vim.api.nvim_set_hl(0, "DiffviewPrimary", { ctermfg = 14 })
+    vim.api.nvim_set_hl(0, "DiffviewSecondary", { ctermfg = 214 })
+end
+
 local function apply_tty_highlights()
-    -- Ensure 16-color VGA console (tty3) readability for splits, floats, popups, and signs
+    -- Ensure 16-color VGA console (tty3) readability for splits, floats, popups, diffs, and signs
     vim.api.nvim_set_hl(0, "SignColumn", { ctermbg = "NONE", bg = "NONE" })
     vim.api.nvim_set_hl(0, "VertSplit", { ctermfg = 7, ctermbg = "NONE", fg = "LightGrey", bg = "NONE" })
     vim.api.nvim_set_hl(0, "WinSeparator", { ctermfg = 7, ctermbg = "NONE", fg = "LightGrey", bg = "NONE" })
     vim.api.nvim_set_hl(0, "NormalFloat", { ctermfg = 7, ctermbg = 0, fg = "LightGrey", bg = "Black" })
     vim.api.nvim_set_hl(0, "FloatBorder", { ctermfg = 7, ctermbg = 0, fg = "LightGrey", bg = "Black" })
+    vim.api.nvim_set_hl(0, "FloatTitle", { ctermfg = 11, ctermbg = 0, bold = true })
+    vim.api.nvim_set_hl(0, "FloatFooter", { ctermfg = 7, ctermbg = 0 })
     vim.api.nvim_set_hl(0, "Pmenu", { ctermfg = 7, ctermbg = 0, fg = "LightGrey", bg = "Black" })
     vim.api.nvim_set_hl(0, "PmenuSel", { ctermfg = 0, ctermbg = 7, fg = "Black", bg = "LightGrey", bold = true })
+    vim.api.nvim_set_hl(0, "PmenuBorder", { ctermfg = 7, ctermbg = 0 })
+    vim.api.nvim_set_hl(0, "DiffAdd", { ctermfg = 10, ctermbg = 0 })
+    vim.api.nvim_set_hl(0, "DiffChange", { ctermfg = 14, ctermbg = 0 })
+    vim.api.nvim_set_hl(0, "DiffDelete", { ctermfg = 9, ctermbg = 0 })
+    vim.api.nvim_set_hl(0, "DiffText", { ctermfg = 11, ctermbg = 0, bold = true })
+    vim.api.nvim_set_hl(0, "DiffviewDiffAddAsDelete", { ctermfg = 9, ctermbg = 0 })
+    vim.api.nvim_set_hl(0, "DiffviewDiffDeleteDim", { ctermfg = 8, ctermbg = 0 })
 end
 
 local function enable_vim_look(notify)
@@ -312,8 +369,7 @@ local function enable_vim_look(notify)
     vim.opt.fillchars = { eob = "~", vert = "|" }
     apply_win_options(true, saved.signcolumn or "auto", false)
 
-    -- Ensure sign column blends seamlessly with background in 16-color mode
-    vim.api.nvim_set_hl(0, "SignColumn", { ctermbg = "NONE", bg = "NONE" })
+    apply_vim_look_highlights()
 
     -- Maintain full diagnostic error indicators
     apply_diagnostics(is_tty_mode)
