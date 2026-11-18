@@ -10,6 +10,8 @@ local defaults = {
     markdown = true,
     latex = true,
     docx = true,
+    ai_diff = true,
+    whip = true,
 }
 
 local state = nil
