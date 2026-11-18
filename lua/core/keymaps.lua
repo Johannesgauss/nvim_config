@@ -304,6 +304,26 @@ local actions = {
         local ok, ol = pcall(require, "ai.ollama")
         if ok and ol.swap_model then ol.swap_model() end
     end,
+
+    -- AI vs Human Diff Attribution & Segment Approval (gated by features.conf -> ai_diff)
+    ["ai_diff:next_hunk"] = function()
+        require("ai.ai_diff").next_hunk()
+    end,
+    ["ai_diff:prev_hunk"] = function()
+        require("ai.ai_diff").prev_hunk()
+    end,
+    ["ai_diff:accept_hunk"] = function()
+        require("ai.ai_diff").accept_hunk()
+    end,
+    ["ai_diff:reject_hunk"] = function()
+        require("ai.ai_diff").reject_hunk()
+    end,
+    ["ai_diff:accept_all"] = function()
+        require("ai.ai_diff").accept_all()
+    end,
+    ["ai_diff:reject_all"] = function()
+        require("ai.ai_diff").reject_all()
+    end,
 }
 
 -- ============================================================================
@@ -344,6 +364,7 @@ local optional_prefixes = {
     markdown = true,
     latex = true,
     docx = true,
+    ai_diff = true,
 }
 
 local function load_shortcuts_conf()

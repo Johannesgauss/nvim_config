@@ -18,5 +18,10 @@ end
 
 --for _, spec in ipairs(ollama.specs) do table.insert(specs, spec) end
 
+local features = require("core.features")
+if features.is_enabled("ai_diff") then
+  require("ai.ai_diff").setup()
+end
+
 return specs
 

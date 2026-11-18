@@ -23,9 +23,20 @@ function M.toggle_diffview()
   end
 end
 
+local function is_agy_running()
+  if not agy_buf or not vim.api.nvim_buf_is_valid(agy_buf) then
+    return false
+  end
+  local job_id = vim.b[agy_buf].terminal_job_id
+  if not job_id then
+    return false
+  end
+  return vim.fn.jobwait({ job_id }, 0)[1] == -1
+end
+
 function M.toggle(cmd_args)
   local slim_width = math.floor(vim.o.columns * 0.25)
-  if agy_buf and vim.api.nvim_buf_is_valid(agy_buf) and vim.b[agy_buf].terminal_job_id then
+  if is_agy_running() then
     local win = vim.fn.bufwinnr(agy_buf)
     if win ~= -1 then
       vim.cmd(win .. "wincmd w")
@@ -37,6 +48,9 @@ function M.toggle(cmd_args)
       vim.cmd("startinsert")
     end
   else
+    if agy_buf and vim.api.nvim_buf_is_valid(agy_buf) then
+      pcall(vim.api.nvim_buf_delete, agy_buf, { force = true })
+    end
     vim.cmd("belowright " .. slim_width .. "vsplit")
     local cmd = "terminal agy"
     if cmd_args and cmd_args ~= "" then
@@ -45,6 +59,18 @@ function M.toggle(cmd_args)
     vim.cmd(cmd)
     agy_buf = vim.api.nvim_get_current_buf()
     vim.opt_local.winfixwidth = true
+    if require("core.features").is_enabled("ai_diff") then
+      local ai_diff = require("ai.ai_diff")
+      ai_diff.start_watcher(is_agy_running)
+      vim.api.nvim_create_autocmd("TermClose", {
+        buffer = agy_buf,
+        once = true,
+        callback = function()
+          ai_diff.stop_watcher()
+          pcall(vim.cmd, "silent! checktime")
+        end,
+      })
+    end
     vim.cmd("startinsert")
   end
 end
