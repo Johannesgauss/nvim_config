@@ -12,6 +12,7 @@ local available_modules = {
     "markdown",
     "latex",
     "docx",
+    "discord",
 }
 
 --- Returns Lazy.nvim plugin specs for all enabled optional modules
@@ -59,12 +60,14 @@ function M.setup()
 
     vim.api.nvim_create_user_command("Features", function()
         local all = features.get_all()
+        local keys = vim.tbl_keys(all)
+        table.sort(keys)
         local lines = { "Optional Features (features.conf):" }
-        for _, name in ipairs(available_modules) do
+        for _, name in ipairs(keys) do
             table.insert(lines, string.format("  %-10s = %s", name, all[name] and "enabled" or "disabled"))
         end
         vim.notify(table.concat(lines, "\n"), vim.log.levels.INFO)
-    end, { desc = "Show status of optional modules (markdown, latex, docx)" })
+    end, { desc = "Show status of optional features in features.conf" })
 
     vim.api.nvim_create_user_command("FeatureToggle", function(opts)
         local name = vim.trim(opts.args or ""):lower()
@@ -82,9 +85,11 @@ function M.setup()
     end, {
         nargs = "?",
         complete = function()
-            return available_modules
+            local keys = vim.tbl_keys(features.get_all())
+            table.sort(keys)
+            return keys
         end,
-        desc = "Toggle an optional feature in features.conf (:FeatureToggle [markdown|latex|docx])",
+        desc = "Toggle an optional feature in features.conf (:FeatureToggle <feature>)",
     })
 end
 

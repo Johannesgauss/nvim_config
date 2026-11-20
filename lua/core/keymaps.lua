@@ -364,7 +364,9 @@ local optional_prefixes = {
     markdown = true,
     latex = true,
     docx = true,
+    ai = true,
     ai_diff = true,
+    discord = true,
 }
 
 local function load_shortcuts_conf()
@@ -411,6 +413,8 @@ local function load_shortcuts_conf()
                     local prefix = action:match("^([%a_]+):")
                     local skip = false
                     if prefix and optional_prefixes[prefix] and not features.is_enabled(prefix) then
+                        skip = true
+                    elseif prefix == "ai_diff" and not features.is_enabled("ai") then
                         skip = true
                     end
 

@@ -1,3 +1,8 @@
+local features = require("core.features")
+if not features.is_enabled("ai") then
+  return {}
+end
+
 --local copilot = require("ai.copilot")
 local antigravity = require("ai.antigravity")
 --local claudecode = require("ai.claudecode")
@@ -18,7 +23,6 @@ end
 
 --for _, spec in ipairs(ollama.specs) do table.insert(specs, spec) end
 
-local features = require("core.features")
 if features.is_enabled("ai_diff") then
   require("ai.ai_diff").setup()
 end
