@@ -307,10 +307,15 @@ local function apply_vim_look_highlights()
     vim.api.nvim_set_hl(0, "DiagnosticInfo", { ctermfg = 12 })
 
     -- Eliminate unreadable bright-pink / bright-on-bright groups in `vim` colorscheme
+    vim.api.nvim_set_hl(0, "ColorColumn", { ctermbg = 236 })
     vim.api.nvim_set_hl(0, "Constant", { ctermfg = 208 })
     vim.api.nvim_set_hl(0, "Title", { ctermfg = 11, bold = true })
     vim.api.nvim_set_hl(0, "Special", { ctermfg = 214 })
-    vim.api.nvim_set_hl(0, "WarningMsg", { ctermfg = 214, bold = true })
+    vim.api.nvim_set_hl(0, "PreProc", { ctermfg = 81 })
+    vim.api.nvim_set_hl(0, "Underlined", { ctermfg = 81, cterm = { underline = true } })
+    vim.api.nvim_set_hl(0, "WarningMsg", { ctermfg = 214, ctermbg = "NONE", bold = true })
+    vim.api.nvim_set_hl(0, "ErrorMsg", { ctermfg = 15, ctermbg = 124, bold = true })
+    vim.api.nvim_set_hl(0, "Error", { ctermfg = 15, ctermbg = 124, bold = true })
     vim.api.nvim_set_hl(0, "MatchParen", { ctermfg = 15, ctermbg = 24, bold = true })
     vim.api.nvim_set_hl(0, "SpellBad", { cterm = { underline = true }, ctermbg = "NONE" })
     vim.api.nvim_set_hl(0, "SpellCap", { cterm = { underline = true }, ctermbg = "NONE" })
@@ -341,6 +346,16 @@ local function apply_tty_highlights()
     vim.api.nvim_set_hl(0, "SignColumn", { ctermbg = "NONE", bg = "NONE" })
     vim.api.nvim_set_hl(0, "VertSplit", { ctermfg = 7, ctermbg = "NONE", fg = "LightGrey", bg = "NONE" })
     vim.api.nvim_set_hl(0, "WinSeparator", { ctermfg = 7, ctermbg = "NONE", fg = "LightGrey", bg = "NONE" })
+    vim.api.nvim_set_hl(0, "ColorColumn", { ctermbg = 0 })
+    vim.api.nvim_set_hl(0, "Constant", { ctermfg = 3 })
+    vim.api.nvim_set_hl(0, "Title", { ctermfg = 11, bold = true })
+    vim.api.nvim_set_hl(0, "Special", { ctermfg = 3 })
+    vim.api.nvim_set_hl(0, "PreProc", { ctermfg = 14 })
+    vim.api.nvim_set_hl(0, "Underlined", { ctermfg = 14, cterm = { underline = true } })
+    vim.api.nvim_set_hl(0, "WarningMsg", { ctermfg = 11, ctermbg = "NONE", bold = true })
+    vim.api.nvim_set_hl(0, "ErrorMsg", { ctermfg = 15, ctermbg = 1, bold = true })
+    vim.api.nvim_set_hl(0, "Error", { ctermfg = 15, ctermbg = 1, bold = true })
+    vim.api.nvim_set_hl(0, "MatchParen", { ctermfg = 0, ctermbg = 6, bold = true })
     vim.api.nvim_set_hl(0, "NormalFloat", { ctermfg = 7, ctermbg = 0, fg = "LightGrey", bg = "Black" })
     vim.api.nvim_set_hl(0, "FloatBorder", { ctermfg = 7, ctermbg = 0, fg = "LightGrey", bg = "Black" })
     vim.api.nvim_set_hl(0, "FloatTitle", { ctermfg = 11, ctermbg = 0, bold = true })
@@ -356,7 +371,23 @@ local function apply_tty_highlights()
     vim.api.nvim_set_hl(0, "DiffviewDiffDeleteDim", { ctermfg = 8, ctermbg = 0 })
 end
 
+-- Re-apply vim_look/tty highlight overrides whenever `vim` colorscheme is re-sourced
+-- (e.g., when Neovim's async OSC 11 terminal background detection updates `vim.o.background`).
+local hl_augroup = vim.api.nvim_create_augroup("VimLookHighlights", { clear = true })
+vim.api.nvim_create_autocmd("ColorScheme", {
+    group = hl_augroup,
+    callback = function()
+        if is_vim_look then
+            apply_vim_look_highlights()
+            if is_tty_mode then
+                apply_tty_highlights()
+            end
+        end
+    end,
+})
+
 local function enable_vim_look(notify)
+    is_vim_look = true
     vim.o.termguicolors = false
     local ok_cs = pcall(vim.cmd.colorscheme, "vim")
     if not ok_cs then
@@ -374,13 +405,13 @@ local function enable_vim_look(notify)
     -- Maintain full diagnostic error indicators
     apply_diagnostics(is_tty_mode)
 
-    is_vim_look = true
     if notify then
         vim.notify("Classic Vim look enabled (remembered across restarts)", vim.log.levels.INFO)
     end
 end
 
 local function disable_vim_look(notify)
+    is_vim_look = false
     vim.o.termguicolors = (saved.termguicolors ~= nil) and saved.termguicolors or true
     pcall(vim.cmd.colorscheme, saved.colors_name or "catppuccin-mocha")
     vim.o.statusline = (saved.statusline and saved.statusline ~= "") and saved.statusline or "%!v:lua.Render_Statusline()"
@@ -400,7 +431,6 @@ local function disable_vim_look(notify)
 
     apply_diagnostics(false)
 
-    is_vim_look = false
     if notify then
         vim.notify("Modern look restored (remembered across restarts)", vim.log.levels.INFO)
     end
