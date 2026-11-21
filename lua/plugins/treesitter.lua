@@ -1,117 +1,45 @@
-local function setup_treesitter_compat()
-  -- Neovim 0.11/0.12 compatibility shim:
-  -- In Neovim 0.11+, query matches pass captures as tables of nodes (TSNode[]),
-  -- and removed support for opts.all = false. nvim-treesitter master branch predicates/directives
-  -- expect match[id] to be a single TSNode. Wrap match access and get_node_text/get_range
-  -- to prevent "attempt to call method 'range' (a nil value)".
-
-  if vim.treesitter.query then
-    local orig_add_directive = vim.treesitter.query.add_directive
-    vim.treesitter.query.add_directive = function(name, handler, opts)
-      local wrapped_handler = handler
-      if opts and opts.all == false then
-        wrapped_handler = function(match, pattern, bufnr, pred, metadata)
-          local proxy_match = setmetatable({}, {
-            __index = function(_, k)
-              local v = match[k]
-              if type(v) == "table" and not getmetatable(v) then
-                return v[1]
-              end
-              return v
-            end,
-            __newindex = match,
-          })
-          return handler(proxy_match, pattern, bufnr, pred, metadata)
-        end
-      end
-      return orig_add_directive(name, wrapped_handler, opts)
-    end
-
-    local orig_add_predicate = vim.treesitter.query.add_predicate
-    vim.treesitter.query.add_predicate = function(name, handler, opts)
-      local wrapped_handler = handler
-      if opts and opts.all == false then
-        wrapped_handler = function(match, pattern, bufnr, pred, metadata)
-          local proxy_match = setmetatable({}, {
-            __index = function(_, k)
-              local v = match[k]
-              if type(v) == "table" and not getmetatable(v) then
-                return v[1]
-              end
-              return v
-            end,
-            __newindex = match,
-          })
-          return handler(proxy_match, pattern, bufnr, pred, metadata)
-        end
-      end
-      return orig_add_predicate(name, wrapped_handler, opts)
-    end
-  end
-
-  if vim.treesitter.get_node_text then
-    local orig_get_node_text = vim.treesitter.get_node_text
-    vim.treesitter.get_node_text = function(node, source, opts)
-      if type(node) == "table" and not getmetatable(node) then
-        node = node[1]
-      end
-      if not node then
-        return ""
-      end
-      return orig_get_node_text(node, source, opts)
-    end
-  end
-
-  if vim.treesitter.get_range then
-    local orig_get_range = vim.treesitter.get_range
-    vim.treesitter.get_range = function(node, source, metadata)
-      if type(node) == "table" and not getmetatable(node) then
-        node = node[1]
-      end
-      if not node then
-        return { 0, 0, 0, 0, 0, 0 }
-      end
-      return orig_get_range(node, source, metadata)
-    end
-  end
-
-  -- Compatibility shim for tree-sitter CLI v0.25+ (Gentoo, Arch, latest releases):
-  -- tree-sitter CLI v0.25+ removed the obsolete '--no-bindings' flag.
-  -- Pre-populate ts_generate_args without '--no-bindings' so nvim-treesitter doesn't fail on modern distros.
-  local ok_install, install = pcall(require, "nvim-treesitter.install")
-  if ok_install and install then
-    local abi = vim.treesitter.language_version or 14
-    install.ts_generate_args = { "generate", "--abi", tostring(abi) }
-  end
-end
-
 return {
   "nvim-treesitter/nvim-treesitter",
-  branch = "master",
+  branch = "main",
   build = ":TSUpdate",
   event = { "BufReadPost", "BufNewFile" },
-  cmd = { "TSUpdate", "TSInstall", "TSBufEnable", "TSModuleInfo" },
-  init = function()
-    setup_treesitter_compat()
-  end,
+  cmd = { "TSUpdate", "TSInstall", "TSUninstall", "TSLog" },
   config = function()
-    setup_treesitter_compat()
-    if package.loaded["nvim-treesitter.query_predicates"] then
-      package.loaded["nvim-treesitter.query_predicates"] = nil
-      require("nvim-treesitter.query_predicates")
-    end
-    local ensure_installed = { "prisma", "lua", "vim", "vimdoc", "markdown", "markdown_inline", "rust" }
-    -- tree-sitter-latex requires the `tree-sitter` CLI binary to generate its grammar from source.
-    -- Only add 'latex' if tree-sitter CLI is available, avoiding startup errors on machines without it.
-    if vim.fn.executable("tree-sitter") == 1 then
-      table.insert(ensure_installed, "latex")
+    local ok_ts, ts = pcall(require, "nvim-treesitter")
+    if ok_ts and type(ts.setup) == "function" then
+      ts.setup({})
+
+      local ensure_installed = { "prisma", "lua", "vim", "vimdoc", "markdown", "markdown_inline", "rust" }
+      if vim.fn.executable("tree-sitter") == 1 then
+        table.insert(ensure_installed, "latex")
+      end
+
+      if type(ts.install) == "function" then
+        local installed = {}
+        if type(ts.get_installed) == "function" then
+          for _, lang in ipairs(ts.get_installed()) do
+            installed[lang] = true
+          end
+        end
+        local missing = vim.tbl_filter(function(lang)
+          return not installed[lang]
+        end, ensure_installed)
+        if #missing > 0 then
+          pcall(ts.install, missing)
+        end
+      end
     end
 
-    require("nvim-treesitter.configs").setup({
-      ensure_installed = ensure_installed,
-      highlight = {
-        enable = true,
-      },
+    -- Enable Neovim's native treesitter highlighting for any buffer with an installed parser
+    local group = vim.api.nvim_create_augroup("UserTreesitterStart", { clear = true })
+    vim.api.nvim_create_autocmd("FileType", {
+      group = group,
+      callback = function(ev)
+        pcall(vim.treesitter.start, ev.buf)
+      end,
     })
+
+    -- Also start on the current buffer if already loaded before this config ran
+    pcall(vim.treesitter.start)
   end,
 }
