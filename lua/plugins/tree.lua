@@ -2,7 +2,17 @@
 return {
   "nvim-tree/nvim-tree.lua",
   version = "*",
-  lazy = false, 
+  cmd = { "NvimTreeToggle", "NvimTreeOpen", "NvimTreeFocus", "NvimTreeFindFile", "NvimTreeCollapse" },
+  init = function()
+    -- Eagerly load only when Neovim is launched directly on a directory (e.g. `nvim .`)
+    if vim.fn.argc(-1) == 1 then
+      local arg = vim.fn.argv(0)
+      local stat = arg and (vim.uv or vim.loop).fs_stat(arg)
+      if stat and stat.type == "directory" then
+        require("lazy").load({ plugins = { "nvim-tree.lua" } })
+      end
+    end
+  end,
   dependencies = {
     "nvim-tree/nvim-web-devicons", 
   },
