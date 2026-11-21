@@ -72,59 +72,11 @@ return {
         return orig_open_floating_preview(contents, syntax, opts)
       end
 
-      -- Keymaps on LspAttach
+      -- Keymaps & behavior on LspAttach
       vim.api.nvim_create_autocmd("LspAttach", {
         group = vim.api.nvim_create_augroup("UserLspConfig", {}),
         callback = function(ev)
           local bufnr = ev.buf
-          
-          local class_inspector = require("core.class_inspector")
-
-          local function show_docs()
-            local clients = vim.lsp.get_clients({ bufnr = bufnr, method = "textDocument/hover" })
-            if #clients == 0 then
-              local cword = vim.fn.expand("<cword>")
-              if cword and cword ~= "" then
-                local ok = pcall(vim.cmd.help, cword)
-                if not ok then
-                  vim.cmd("normal! K")
-                end
-              end
-              return
-            end
-
-            local cur_word = vim.fn.expand("<cword>")
-            local client = clients[1]
-            local h_params = vim.lsp.util.make_position_params(0, client.offset_encoding)
-
-            client:request("textDocument/hover", h_params, function(h_err, h_result)
-              local lines = {}
-              if not h_err and h_result and h_result.contents then
-                lines = vim.lsp.util.convert_input_to_markdown_lines(h_result.contents)
-              end
-
-              class_inspector.resolve_class_details(bufnr, client, h_params, cur_word, lines, function(class_lines)
-                if class_lines and #class_lines > 0 then
-                  if #lines > 0 then
-                    table.insert(lines, "")
-                    table.insert(lines, "---")
-                  end
-                  for _, cl in ipairs(class_lines) do
-                    table.insert(lines, cl)
-                  end
-                end
-
-                if #lines > 0 then
-                  util.open_floating_preview(lines, "markdown", {
-                    border = "rounded",
-                    focus_id = "textDocument/hover",
-                  })
-                else
-                  vim.notify("No information available", vim.log.levels.INFO)
-                end
-              end)
-            end)
-          end
 
           -- Enable inlay hints if supported by the client
           local client = vim.lsp.get_client_by_id(ev.data.client_id)

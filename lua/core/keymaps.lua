@@ -329,14 +329,6 @@ local actions = {
 -- ============================================================================
 -- Global User Commands
 -- ============================================================================
-vim.api.nvim_create_user_command("ToggleTTY", function()
-    require("ui.vim_look").toggle_tty()
-end, { desc = "Toggle classic TTY mode with ASCII borders" })
-
-vim.api.nvim_create_user_command("ToggleVimLook", function()
-    require("ui.vim_look").toggle()
-end, { desc = "Toggle between classic and modern Vim look" })
-
 vim.api.nvim_create_user_command("Cowabuga", function(opts)
     require("core.cowabuga").command(opts.args)
 end, {
