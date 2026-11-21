@@ -24,21 +24,91 @@ vim.env.PATH = current_path
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
+local function load_options_conf()
+    local cfg = {
+        tabstop = 8,
+        shiftwidth = 8,
+        expandtab = false,
+        smartindent = true,
+        undofile = true,
+        ignorecase = true,
+        smartcase = true,
+        term_auto_insert = true,
+        term_auto_close = true,
+        timeoutlen = 250,
+        ttimeoutlen = 5,
+        updatetime = 150,
+        synmaxcol = 300,
+        redrawtime = 1500,
+        lsp_log_level = "error",
+    }
+
+    local conf_path = vim.fs.joinpath(vim.fn.stdpath("config"), "options.conf")
+    if vim.fn.filereadable(conf_path) ~= 1 then
+        return cfg
+    end
+
+    for _, raw_line in ipairs(vim.fn.readfile(conf_path)) do
+        local line = vim.trim(raw_line)
+        if line ~= "" and not line:match("^#") and not line:match("^//") then
+            local key, val = line:match("^([^=]+)%s*=%s*(.+)$")
+            if key and val then
+                key = vim.trim(key):lower()
+                if val:find("#") then
+                    val = vim.split(val, "#")[1]
+                end
+                val = vim.trim(val)
+                local lower = val:lower()
+                if cfg[key] ~= nil then
+                    if type(cfg[key]) == "boolean" then
+                        if lower == "true" or lower == "1" or lower == "yes" or lower == "on" then
+                            cfg[key] = true
+                        elseif lower == "false" or lower == "0" or lower == "no" or lower == "off" then
+                            cfg[key] = false
+                        end
+                    elseif type(cfg[key]) == "number" then
+                        local num = tonumber(val)
+                        if num then
+                            cfg[key] = num
+                        end
+                    else
+                        cfg[key] = lower
+                    end
+                end
+            end
+        end
+    end
+
+    return cfg
+end
+
+local user_opts = load_options_conf()
+
 opt.splitright = true
 opt.laststatus = 2
 opt.number = true
 opt.relativenumber = true
-opt.smartindent = true
-opt.tabstop = 8
-opt.shiftwidth = 8
-opt.expandtab = false
+opt.smartindent = user_opts.smartindent
+opt.tabstop = user_opts.tabstop
+opt.shiftwidth = user_opts.shiftwidth
+opt.expandtab = user_opts.expandtab
+opt.undofile = user_opts.undofile
+opt.ignorecase = user_opts.ignorecase
+opt.smartcase = user_opts.smartcase
+
+-- Prevent unbounded ~/.local/state/nvim/lsp.log growth
+if vim.lsp and vim.lsp.log and type(vim.lsp.log.set_level) == "function" then
+    pcall(vim.lsp.log.set_level, user_opts.lsp_log_level)
+elseif vim.lsp and type(vim.lsp.set_log_level) == "function" then
+    pcall(vim.lsp.set_log_level, user_opts.lsp_log_level)
+end
 
 -- Ultra-low-latency input, key-chord, and redraw tuning (matching raw Linux TTY responsiveness)
-opt.timeoutlen = 250
-opt.ttimeoutlen = 5
-opt.updatetime = 150
-opt.synmaxcol = 300
-opt.redrawtime = 1500
+opt.timeoutlen = user_opts.timeoutlen
+opt.ttimeoutlen = user_opts.ttimeoutlen
+opt.updatetime = user_opts.updatetime
+opt.synmaxcol = user_opts.synmaxcol
+opt.redrawtime = user_opts.redrawtime
 
 -- Non-blocking asynchronous Wayland/X11 clipboard provider for unnamedplus:
 -- Eliminates the 22.7ms synchronous wl-copy freeze on every 'x', 'dd', 'dw', 'cw', and 'yy'!
@@ -48,6 +118,7 @@ if not is_win and (vim.env.WAYLAND_DISPLAY or vim.env.DISPLAY) then
     if has_wl or has_xclip then
         local cache_lines = { [""] = {} }
         local cache_type = { [""] = "v" }
+        local cache_text = nil
 
         local function async_copy(lines, regtype)
             cache_lines[""] = lines
@@ -56,6 +127,7 @@ if not is_win and (vim.env.WAYLAND_DISPLAY or vim.env.DISPLAY) then
             if regtype == "V" or regtype == "\22" then
                 text = text .. "\n"
             end
+            cache_text = text
             local cmd = has_wl and { "wl-copy", "--" } or { "xclip", "-quiet", "-i", "-selection", "clipboard" }
             pcall(vim.system, cmd, { stdin = text, detach = true })
         end
@@ -67,6 +139,12 @@ if not is_win and (vim.env.WAYLAND_DISPLAY or vim.env.DISPLAY) then
                 local res = proc:wait(300)
                 if res and res.code == 0 and res.stdout then
                     local out = res.stdout:gsub("\r\n", "\n")
+                    if cache_text ~= nil and out == cache_text then
+                        return cache_lines[""] or {}, cache_type[""] or "v"
+                    end
+                    if out:sub(-1) == "\n" then
+                        return vim.split(out:sub(1, -2), "\n", { plain = true }), "V"
+                    end
                     return vim.split(out, "\n", { plain = true }), "v"
                 end
             end
@@ -90,10 +168,12 @@ end
 
 opt.clipboard = "unnamedplus"
 
-vim.api.nvim_create_autocmd({"WinEnter", "BufWinEnter", "TermOpen"}, {
-    pattern = "term://*",
-    callback = function() vim.cmd("startinsert") end,
-})
+if user_opts.term_auto_insert then
+    vim.api.nvim_create_autocmd({"WinEnter", "BufWinEnter", "TermOpen"}, {
+        pattern = "term://*",
+        callback = function() vim.cmd("startinsert") end,
+    })
+end
 
 vim.api.nvim_create_autocmd("TermOpen", {
     callback = function()
@@ -102,11 +182,13 @@ vim.api.nvim_create_autocmd("TermOpen", {
     end,
 })
 
-vim.api.nvim_create_autocmd("TermClose", {
-    callback = function()
-        vim.cmd("bdelete!")
-    end,
-})
+if user_opts.term_auto_close then
+    vim.api.nvim_create_autocmd("TermClose", {
+        callback = function()
+            vim.cmd("bdelete!")
+        end,
+    })
+end
 
 vim.filetype.add({
   extension = {
